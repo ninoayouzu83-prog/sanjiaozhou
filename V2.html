@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字三角洲：零号大坝 (升级版)</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --card-bg: #21262d;
+            --text-main: #c9d1d9;
+            --highlight: #58a6ff; /* 科技蓝 */
+            --danger: #f85149;
+            --gold: #e3b341;
+            --purple: #d2a8ff;
+            --green: #3fb950;
+            --selected-border: #238636;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* 顶部状态栏 */
+        #status-bar {
+            background-color: #010409;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #30363d;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .resource-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* 主容器 */
+        #main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 屏幕页面切换 */
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            box-sizing: border-box;
+            overflow-y: auto;
+            padding-bottom: 80px; /* 为底部按钮留空 */
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* --- 备战大厅样式 --- */
+        
+        .lobby-section {
+            padding: 15px;
+        }
+
+        .section-title {
+            color: var(--highlight);
+            font-size: 16px;
+            border-left: 4px solid var(--highlight);
+            padding-left: 10px;
+            margin: 10px 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-scroll-view {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .card-scroll-view::-webkit-scrollbar { display: none; }
+
+        .card {
+            background: var(--card-bg);
+            border: 2px solid #30363d;
+            border-radius: 8px;
+            min-width: 140px;
+            width: 140px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover { transform: translateY(-2px); }
+
+        /* 选中状态 */
+        .card.selected {
+            border-color: var(--highlight);
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
+            background-color: #1f2937;
+        }
+        
+        .card.selected::after {
+            content: "✔";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--highlight);
+            color: black;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            background: #000;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .card-body {
+            padding: 10px;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-desc {
+            font-size: 11px;
+            color: #8b949e;
+            margin-bottom: 5px;
+        }
+
+        .stat-badges {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            font-size: 10px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            background: #30363d;
+        }
+
+        /* 底部固定账单栏 */
+        #checkout-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #0d1117;
+            border-top: 1px solid #30363d;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .bill-info {
+            font-size: 14px;
+        }
+        .total-price {
+            color: var(--gold);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .btn-start {
+            background: var(--highlight);
+            color: #000;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-start:disabled { background: #555; cursor: not-allowed; }
+
+        /* 防具滑块 */
+        .armor-control {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            margin-top: 10px;
+        }
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--highlight);
+            margin: 15px 0;
+        }
+
+        /* --- 游戏内样式 --- */
+        #game-log {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #0d1117;
+        }
+        .log-entry { margin-bottom: 12px; line-height: 1.5; font-size: 15px; border-left: 2px solid #30363d; padding-left: 10px; }
+        .log-entry.new { animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .text-blue { color: var(--highlight); }
+        .text-red { color: var(--danger); }
+        .text-gold { color: var(--gold); }
+        
+        #action-panel {
+            background: #161b22;
+            padding: 15px;
+            border-top: 1px solid #30363d;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .btn-option {
+            background: #21262d;
+            color: var(--text-main);
+            border: 1px solid #30363d;
+            padding: 12px;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-option:hover { background: #30363d; border-color: var(--highlight); }
+
+        /* 结算页 */
+        .result-container {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .loot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .loot-item {
+            background: #21262d;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid #333;
+        }
+        .loot-item.tier-5 { border-color: var(--danger); color: var(--danger); }
+        .loot-item.tier-4 { border-color: var(--gold); color: var(--gold); }
+        .loot-item.tier-3 { border-color: var(--purple); color: var(--purple); }
+
+    </style>
+</head>
+<body>
+
+    <!-- 顶部常驻资源栏 -->
+    <div id="status-bar">
+        <div class="resource-item">
+            <span style="color: var(--gold); margin-right:5px;">🪙</span>
+            <span id="ui-money">500,000</span>
+        </div>
+        <div class="resource-item">
+            <span style="color: var(--danger); margin-right:5px;">❤️</span>
+            <span id="ui-hp">100%</span>
+        </div>
+        <div class="resource-item">
+            <span style="color: var(--purple); margin-right:5px;">🎒</span>
+            <span id="ui-bag-val">0</span>
+        </div>
+    </div>
+
+    <div id="main-container">
+
+        <!-- 1. 备战大厅 (Lobby) -->
+        <div id="screen-lobby" class="screen active">
+            
+            <div class="lobby-section">
+                <div class="section-title">/// 选择特勤干员 ///</div>
+                <div class="card-scroll-view" id="char-select-container">
+                    <!-- 动态生成 -->
+                </div>
+
+                <div class="section-title" style="margin-top:25px">/// 采购主武器 ///</div>
+                <div class="card-scroll-view" id="weapon-select-container">
+                    <!-- 动态生成 -->
+                </div>
+
+                <div class="section-title" style="margin-top:25px">/// 防具等级 ///</div>
+                <div class="armor-control">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span>防弹衣等级: <span id="armor-level-text" class="text-blue">无防具</span></span>
+                        <span id="armor-price-text" class="text-gold">$0</span>
+                    </div>
+                    <input type="range" id="armor-slider" min="0" max="3" value="0" step="1">
+                    <div style="font-size:12px; color:#666;">
+                        * 提升生存率与幸运值，但会增加出击成本。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部账单与开始按钮 -->
+            <div id="checkout-bar">
+                <div class="bill-info">
+                    <div>当前余额: <span id="ui-balance-preview">500000</span></div>
+                    <div>出击花费: <span class="total-price" id="ui-total-cost">0</span></div>
+                </div>
+                <button class="btn-start" onclick="Game.attemptStart()">开始行动</button>
+            </div>
+        </div>
+
+        <!-- 2. 战斗界面 (In-Game) -->
+        <div id="screen-game" class="screen">
+            <div id="game-location-header" style="padding:10px; background:#111; font-size:12px; color:#666; text-align:center;">
+                DEPLOYED AT: <span id="ui-loc-name" style="color:#fff">LOADING...</span>
+            </div>
+            <div id="game-log"></div>
+            <div id="action-panel"></div>
+        </div>
+
+        <!-- 3. 结算界面 (Result) -->
+        <div id="screen-result" class="screen">
+            <div class="result-container">
+                <h1 id="res-title">行动结束</h1>
+                <p id="res-desc">结算信息...</p>
+                <h2 class="text-gold">收益: +<span id="res-money">0</span></h2>
+                
+                <div style="text-align:left; margin-top:20px; font-size:14px; color:#888;">物资清单:</div>
+                <div class="loot-grid" id="res-loot-grid"></div>
+
+                <button class="btn-start" style="width:100%; margin-top:30px;" onclick="Game.toLobby()">返回基地</button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+/**
+ * 游戏配置数据
+ * imgUrl: 这里使用了占位符图片服务，你可以换成具体的图片链接
+ */
+const DATA = {
+    chars: [
+        { 
+            id: 'dragon', name: '威龙', role: '突击', 
+            desc: '精通正面作战，战力极高', 
+            stats: { atk: 9, surv: 5, luck: 5 },
+            img: 'https://placehold.co/140x100/1a1a1a/FFF?text=威龙'
+        },
+        { 
+            id: 'bee', name: '蜂医', role: '支援', 
+            desc: '拥有自救能力，甚至能逃跑', 
+            stats: { atk: 5, surv: 9, luck: 5 },
+            img: 'https://placehold.co/140x100/1a1a1a/FFF?text=蜂医'
+        },
+        { 
+            id: 'wolf', name: '红狼', role: '侦查', 
+            desc: '能提前发现危险并规避', 
+            stats: { atk: 6, surv: 6, luck: 4 },
+            img: 'https://placehold.co/140x100/1a1a1a/FFF?text=红狼'
+        },
+        { 
+            id: 'runner', name: '特勤干员', role: '通用', 
+            desc: '基础干员，幸运较高', 
+            stats: { atk: 3, surv: 3, luck: 8 },
+            img: 'https://placehold.co/140x100/1a1a1a/FFF?text=干员'
+        }
+    ],
+    weapons: [
+        { 
+            id: 'knife', name: '战术匕首', type: 'close', cost: 0, power: 10,
+            desc: '无花费，跑刀首选',
+            img: 'https://placehold.co/140x100/333/FFF?text=匕首' 
+        },
+        { 
+            id: 'smg', name: 'MP5冲锋枪', type: 'close', cost: 15000, power: 35,
+            desc: '近距离射速极快',
+            img: 'https://placehold.co/140x100/333/FFF?text=MP5' 
+        },
+        { 
+            id: 'ar', name: 'M4A1步枪', type: 'mid', cost: 45000, power: 55,
+            desc: '中远距离均衡全能',
+            img: 'https://placehold.co/140x100/333/FFF?text=M4A1' 
+        },
+        { 
+            id: 'sniper', name: 'AWM狙击枪', type: 'far', cost: 70000, power: 80,
+            desc: '极远距离一击必杀',
+            img: 'https://placehold.co/140x100/333/FFF?text=AWM' 
+        }
+    ],
+    armorCosts: [0, 20000, 50000, 100000], // 0-3级防具价格
+    armorNames: ['无防具', '一级甲 (轻型)', '三级甲 (标准)', '五级甲 (重型)'],
+    
+    // 掉落表
+    loot: [
+        { name: '螺丝钉', val: 500, tier: 1 },
+        { name: '打火机', val: 1500, tier: 1 },
+        { name: 'CPU风扇', val: 4000, tier: 2 },
+        { name: '集换式卡牌', val: 12000, tier: 2 },
+        { name: '金条', val: 40000, tier: 3 },
+        { name: '曼德尔砖', val: 150000, tier: 4 },
+        { name: '【非洲之心】', val: 1200000, tier: 5 }
+    ]
+};
+
+const State = {
+    money: 500000,
+    pityLuck: 0,
+    
+    // 备战选择状态
+    selected: {
+        charIndex: -1,
+        weaponIndex: -1,
+        armorLevel: 0
+    },
+
+    // 局内状态
+    inGame: {
+        hp: 100,
+        bagValue: 0,
+        bagItems: [],
+        luck: 0,
+        isDead: false
+    }
+};
+
+const Game = {
+    init: function() {
+        UI.initLobby();
+        UI.updateBalance();
+    },
+
+    // --- 备战逻辑 ---
+
+    selectChar: function(idx) {
+        State.selected.charIndex = idx;
+        UI.renderSelectionState();
+    },
+
+    selectWeapon: function(idx) {
+        State.selected.weaponIndex = idx;
+        UI.renderSelectionState();
+        UI.updateCostPreview();
+    },
+
+    setArmor: function(val) {
+        State.selected.armorLevel = parseInt(val);
+        document.getElementById('armor-level-text').innerText = DATA.armorNames[val];
+        document.getElementById('armor-price-text').innerText = '$' + DATA.armorCosts[val];
+        UI.updateCostPreview();
+    },
+
+    // 计算总花费
+    calculateCost: function() {
+        let cost = 0;
+        if (State.selected.weaponIndex !== -1) {
+            cost += DATA.weapons[State.selected.weaponIndex].cost;
+        }
+        cost += DATA.armorCosts[State.selected.armorLevel];
+        return cost;
+    },
+
+    attemptStart: function() {
+        if (State.selected.charIndex === -1) {
+            alert("请选择一名干员！");
+            return;
+        }
+        if (State.selected.weaponIndex === -1) {
+            alert("请选择主武器！");
+            return;
+        }
+
+        const totalCost = this.calculateCost();
+        if (State.money < totalCost) {
+            alert("资金不足！请调整装备或选择跑刀。");
+            return;
+        }
+
+        // 扣费并开始
+        State.money -= totalCost;
+        this.startRun(totalCost);
+    },
+
+    startRun: function(investedCost) {
+        // 初始化数值
+        const char = DATA.chars[State.selected.charIndex];
+        // 幸运公式：角色基础 + (装备投入/10000) + 连败补偿
+        const gearLuck = Math.floor(investedCost / 10000);
+        
+        State.inGame = {
+            hp: 100,
+            bagValue: 0,
+            bagItems: [],
+            luck: char.stats.luck + gearLuck + State.pityLuck,
+            isDead: false
+        };
+
+        UI.switchScreen('screen-game');
+        UI.updateBalance();
+        UI.updateInGameStatus();
+        UI.clearLog();
+
+        // 随机出生
+        const spawnType = Math.random() > 0.5 ? 'EAST' : 'WEST';
+        this.triggerNode(spawnType === 'EAST' ? 'SPAWN_EAST' : 'SPAWN_WEST');
+    },
+
+    // --- 游戏循环 ---
+
+    triggerNode: function(nodeId) {
+        UI.setLoc(nodeId);
+        
+        const char = DATA.chars[State.selected.charIndex];
+        const weapon = DATA.weapons[State.selected.weaponIndex];
+
+        // 简化的剧本逻辑
+        if (nodeId === 'SPAWN_EAST') {
+            UI.log(`>> 部署完成：零号大坝【东侧】。`, 'text-blue');
+            UI.log(`干员 ${char.name} 已就位，手持 ${weapon.name}。`);
+            UI.showActions([
+                { text: "强攻行政楼 (高风险)", cb: () => this.triggerNode('ADMIN_BUILDING') },
+                { text: "摸索游客中心 (中风险)", cb: () => this.triggerNode('VISITOR_CENTER') },
+                { text: "外围架枪 (低风险)", cb: () => this.triggerNode('CAMPING') }
+            ]);
+        } 
+        else if (nodeId === 'SPAWN_WEST') {
+            UI.log(`>> 部署完成：零号大坝【西侧】。`, 'text-blue');
+            UI.showActions([
+                { text: "突击主楼西侧 (高风险)", cb: () => this.triggerNode('MAIN_WEST') },
+                { text: "搜刮水泥厂 (低风险)", cb: () => this.triggerNode('FACTORY') }
+            ]);
+        }
+        else if (['ADMIN_BUILDING', 'MAIN_WEST'].includes(nodeId)) {
+            UI.log("进入高价值区域，四周脚步声杂乱...", 'text-red');
+            this.encounter(0.7, 'elite', 100, nodeId); // 70%概率遇敌
+        }
+        else if (['VISITOR_CENTER', 'FACTORY'].includes(nodeId)) {
+            UI.log("区域相对安静，开始搜寻物资。");
+            this.encounter(0.3, 'scav', 40, nodeId); // 30%概率遇敌
+        }
+        else if (nodeId === 'CAMPING') {
+            UI.log("你趴在草丛中等待猎物...");
+            if (Math.random() > 0.5) this.encounter(1.0, 'player', 60, nodeId);
+            else {
+                UI.log("等了半天没看到人。");
+                this.handleSearch();
+            }
+        }
+        else if (nodeId === 'EXTRACT') {
+            UI.log(">> 抵达撤离点，直升机已降落！", 'text-green');
+            UI.showActions([
+                { text: "确认撤离", cb: () => this.finish(true) }
+            ]);
+        }
+    },
+
+    encounter: function(prob, enemyType, power, locId) {
+        if (Math.random() > prob) {
+            // 安全，直接搜刮
+            this.handleSearch();
+            return;
+        }
+
+        let enemyName = enemyType === 'elite' ? '全装特遣队' : (enemyType === 'player' ? '跑刀玩家' : '游荡者');
+        UI.log(`⚠️ 接触敌对目标：[${enemyName}]`, 'text-red');
+
+        // 侦查角色特权
+        if (DATA.chars[State.selected.charIndex].id === 'wolf' && Math.random() < 0.6) {
+            UI.showActions([
+                { text: "[红狼天赋] 规避战斗", cb: () => { UI.log("依靠听觉绕过了敌人。"); this.handleSearch(); } },
+                { text: "开火战斗", cb: () => this.combat(power) }
+            ]);
+            return;
+        }
+
+        UI.showActions([
+            { text: "开火战斗", cb: () => this.combat(power) }
+        ]);
+    },
+
+    combat: function(enemyPower) {
+        const char = DATA.chars[State.selected.charIndex];
+        const weapon = DATA.weapons[State.selected.weaponIndex];
+        const armor = State.selected.armorLevel;
+
+        // 战力计算
+        let myPower = (char.stats.atk * 8) + weapon.power + (armor * 15);
+        // 随机波动
+        let roll = Math.floor(Math.random() * 40); 
+        let finalPower = myPower + roll;
+
+        UI.log(`交火中... 战力判定: ${finalPower} vs ${enemyPower + 20}`);
+
+        if (finalPower >= enemyPower) {
+            UI.log(">> 击杀目标！获得战利品。", 'text-green');
+            this.addLoot({ name: '敌人狗牌/装备', val: enemyPower * 150, tier: 3 });
+            this.handleSearch();
+        } else {
+            // 战败
+            if (char.id === 'bee' && Math.random() < 0.5) {
+                UI.log("[蜂医天赋] 重伤倒地，但在烟雾掩护下爬走了！", 'text-purple');
+                State.inGame.hp = 10;
+                State.inGame.bagValue = Math.floor(State.inGame.bagValue / 2);
+                UI.updateInGameStatus();
+                this.handleSearch();
+            } else {
+                this.finish(false);
+            }
+        }
+    },
+
+    handleSearch: function() {
+        // 搜刮逻辑
+        const luck = State.inGame.luck;
+        const roll = Math.floor(Math.random() * 100) + luck;
+        
+        let found = DATA.loot[0]; // 默认垃圾
+        if (roll > 130) found = DATA.loot[6]; // 大红
+        else if (roll > 110) found = DATA.loot[5];
+        else if (roll > 90) found = DATA.loot[4];
+        else if (roll > 60) found = DATA.loot[3];
+        else if (roll > 30) found = DATA.loot[2];
+
+        UI.log(`搜索箱子发现: ${found.name}`, found.tier >= 4 ? 'text-gold' : '');
+        this.addLoot(found);
+
+        // 决策下一步
+        if (State.inGame.bagItems.length >= 3 || Math.random() > 0.7) {
+            setTimeout(() => this.triggerNode('EXTRACT'), 1000);
+        } else {
+            UI.showActions([
+                { text: "寻找下一个搜刮点", cb: () => {
+                    const next = Math.random() > 0.5 ? 'VISITOR_CENTER' : 'FACTORY';
+                    this.triggerNode(next);
+                }}
+            ]);
+        }
+    },
+
+    addLoot: function(item) {
+        State.inGame.bagItems.push(item);
+        State.inGame.bagValue += item.val;
+        UI.updateInGameStatus();
+    },
+
+    finish: function(success) {
+        UI.switchScreen('screen-result');
+        const rTitle = document.getElementById('res-title');
+        const rDesc = document.getElementById('res-desc');
+        const rMoney = document.getElementById('res-money');
+        const rGrid = document.getElementById('res-loot-grid');
+
+        rGrid.innerHTML = '';
+
+        if (success) {
+            rTitle.innerText = "撤离成功";
+            rTitle.style.color = "var(--green)";
+            rDesc.innerText = "物资已成功带出。";
+            rMoney.innerText = State.inGame.bagValue;
+            
+            State.money += State.inGame.bagValue;
+            State.pityLuck = 0; // 清除补偿
+
+            State.inGame.bagItems.forEach(item => {
+                rGrid.innerHTML += `<div class="loot-item tier-${item.tier}">${item.name}<br>$${item.val}</div>`;
+            });
+        } else {
+            rTitle.innerText = "行动失败";
+            rTitle.style.color = "var(--danger)";
+            rDesc.innerText = "干员阵亡，物资全部丢失。";
+            rMoney.innerText = "0";
+            
+            State.pityLuck += 5;
+            rGrid.innerHTML = `<div class="loot-item tier-3">幸运补偿 +5</div>`;
+        }
+        UI.updateBalance();
+    },
+
+    toLobby: function() {
+        UI.switchScreen('screen-lobby');
+    }
+};
+
+const UI = {
+    initLobby: function() {
+        // 渲染干员卡片
+        const charHtml = DATA.chars.map((c, i) => `
+            <div class="card" onclick="Game.selectChar(${i})" id="char-card-${i}">
+                <img src="${c.img}" class="card-img">
+                <div class="card-body">
+                    <div class="card-title">${c.name}</div>
+                    <div class="card-desc">${c.role} | ${c.desc}</div>
+                    <div class="stat-badges">
+                        <span class="badge">⚔️${c.stats.atk}</span>
+                        <span class="badge">🛡️${c.stats.surv}</span>
+                        <span class="badge">🍀${c.stats.luck}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('char-select-container').innerHTML = charHtml;
+
+        // 渲染武器卡片
+        const weapHtml = DATA.weapons.map((w, i) => `
+            <div class="card" onclick="Game.selectWeapon(${i})" id="weap-card-${i}">
+                <img src="${w.img}" class="card-img">
+                <div class="card-body">
+                    <div class="card-title">${w.name}</div>
+                    <div class="card-desc">${w.desc}</div>
+                    <div class="text-gold" style="font-size:12px; font-weight:bold; margin-top:5px">$${w.cost}</div>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('weapon-select-container').innerHTML = weapHtml;
+
+        // 防具滑块事件
+        document.getElementById('armor-slider').oninput = function() {
+            Game.setArmor(this.value);
+        };
+    },
+
+    renderSelectionState: function() {
+        // 清除旧选中
+        document.querySelectorAll('.card').forEach(el => el.classList.remove('selected'));
+        
+        // 高亮新选中
+        if (State.selected.charIndex !== -1) {
+            document.getElementById(`char-card-${State.selected.charIndex}`).classList.add('selected');
+        }
+        if (State.selected.weaponIndex !== -1) {
+            document.getElementById(`weap-card-${State.selected.weaponIndex}`).classList.add('selected');
+        }
+    },
+
+    updateCostPreview: function() {
+        const total = Game.calculateCost();
+        document.getElementById('ui-total-cost').innerText = '$' + total;
+        
+        // 余额预警
+        const balanceSpan = document.getElementById('ui-balance-preview');
+        balanceSpan.style.color = State.money < total ? 'var(--danger)' : 'var(--text-main)';
+    },
+
+    updateBalance: function() {
+        document.getElementById('ui-money').innerText = State.money.toLocaleString();
+        document.getElementById('ui-balance-preview').innerText = State.money.toLocaleString();
+    },
+
+    updateInGameStatus: function() {
+        document.getElementById('ui-hp').innerText = State.inGame.hp + '%';
+        document.getElementById('ui-bag-val').innerText = State.inGame.bagValue.toLocaleString();
+    },
+
+    log: function(msg, cls='') {
+        const box = document.getElementById('game-log');
+        const div = document.createElement('div');
+        div.className = `log-entry new ${cls}`;
+        div.innerText = msg;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    },
+
+    clearLog: function() {
+        document.getElementById('game-log').innerHTML = '';
+    },
+
+    showActions: function(actions) {
+        const panel = document.getElementById('action-panel');
+        panel.innerHTML = '';
+        actions.forEach(act => {
+            const btn = document.createElement('div');
+            btn.className = 'btn-option';
+            btn.innerText = `> ${act.text}`;
+            btn.onclick = () => {
+                // 点击后清空防止重复点
+                panel.innerHTML = ''; 
+                act.cb();
+            };
+            panel.appendChild(btn);
+        });
+    },
+
+    setLoc: function(id) {
+        const map = {
+            'SPAWN_EAST': '东侧部署点', 'SPAWN_WEST': '西侧部署点',
+            'ADMIN_BUILDING': '行政楼·二层', 'VISITOR_CENTER': '游客中心',
+            'MAIN_WEST': '西楼·实验室', 'FACTORY': '废弃水泥厂',
+            'CAMPING': '野外·狙击位', 'EXTRACT': '撤离点H01'
+        };
+        document.getElementById('ui-loc-name').innerText = map[id] || id;
+    },
+
+    switchScreen: function(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+};
+
+// 启动
+Game.init();
+
+</script>
+</body>
+</html>
