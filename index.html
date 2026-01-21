@@ -2,24 +2,22 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文字三角洲：零号大坝 (升级版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>文字三角洲 V4.0：战绩与经济</title>
     <style>
         :root {
             --bg-color: #0d1117;
             --panel-bg: #161b22;
             --card-bg: #21262d;
-            --text-main: #c9d1d9;
-            --highlight: #58a6ff; /* 科技蓝 */
-            --danger: #f85149;
+            --text-main: #e6edf3;
+            --highlight: #58a6ff;
+            --danger: #ff6b6b;
             --gold: #e3b341;
-            --purple: #d2a8ff;
             --green: #3fb950;
-            --selected-border: #238636;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
@@ -33,806 +31,643 @@
 
         /* 顶部状态栏 */
         #status-bar {
-            background-color: #010409;
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #30363d;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            z-index: 10;
+            height: 40px; background-color: #010409; padding: 0 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #30363d; z-index: 20; font-size: 13px; flex-shrink: 0;
         }
 
-        .resource-item {
-            display: inline-flex;
-            align-items: center;
-            margin-right: 15px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        /* 主容器 */
-        #main-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* 屏幕页面切换 */
+        /* 屏幕容器 */
         .screen {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-            box-sizing: border-box;
-            overflow-y: auto;
-            padding-bottom: 80px; /* 为底部按钮留空 */
+            display: none; flex-direction: column; flex: 1;
+            position: relative; background: var(--bg-color); overflow: hidden;
         }
+        .screen.active { display: flex; }
 
-        .screen.active {
-            display: flex;
-        }
-
-        /* --- 备战大厅样式 --- */
-        
-        .lobby-section {
-            padding: 15px;
-        }
-
-        .section-title {
-            color: var(--highlight);
-            font-size: 16px;
-            border-left: 4px solid var(--highlight);
-            padding-left: 10px;
-            margin: 10px 0 15px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .card-scroll-view {
-            display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            scrollbar-width: none; /* Firefox */
-        }
-        .card-scroll-view::-webkit-scrollbar { display: none; }
-
+        /* --- 1. 备战大厅 --- */
+        .lobby-content { padding: 20px; overflow-y: auto; padding-bottom: 90px; }
+        .card-row { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
         .card {
-            background: var(--card-bg);
-            border: 2px solid #30363d;
-            border-radius: 8px;
-            min-width: 140px;
-            width: 140px;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
+            min-width: 120px; width: 120px;
+            background: var(--card-bg); border: 2px solid #30363d;
+            border-radius: 8px; cursor: pointer; position: relative; transition: 0.2s;
         }
-
-        .card:hover { transform: translateY(-2px); }
-
-        /* 选中状态 */
-        .card.selected {
-            border-color: var(--highlight);
-            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
-            background-color: #1f2937;
-        }
+        .card.selected { border-color: var(--highlight); background: #1f2428; }
+        .card img { width: 100%; height: 80px; object-fit: cover; background: #333; }
+        .card-info { padding: 8px; font-size: 12px; }
         
-        .card.selected::after {
-            content: "✔";
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: var(--highlight);
-            color: black;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+        /* 战绩列表样式 */
+        .history-section { border-top: 1px solid #333; margin-top: 20px; padding-top: 20px; }
+        .history-list { display: flex; flex-direction: column; gap: 10px; }
+        .history-item {
+            background: #1c2128; padding: 12px; border-radius: 6px; font-size: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 3px solid #555;
         }
+        .history-item.win { border-left-color: var(--green); }
+        .history-item.loss { border-left-color: var(--danger); }
+        .h-main { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+        .h-sub { color: #888; }
+        .h-val { font-weight: bold; font-family: monospace; font-size: 14px; }
 
-        .card-img {
-            width: 100%;
-            height: 100px;
-            object-fit: cover;
-            background: #000;
-            border-bottom: 1px solid #30363d;
-        }
-
-        .card-body {
-            padding: 10px;
-        }
-
-        .card-title {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .card-desc {
-            font-size: 11px;
-            color: #8b949e;
-            margin-bottom: 5px;
-        }
-
-        .stat-badges {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-        .badge {
-            font-size: 10px;
-            padding: 2px 4px;
-            border-radius: 4px;
-            background: #30363d;
-        }
-
-        /* 底部固定账单栏 */
         #checkout-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #0d1117;
-            border-top: 1px solid #30363d;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-sizing: border-box;
-            z-index: 100;
+            position: absolute; bottom: 0; width: 100%; height: 70px;
+            background: #111; border-top: 1px solid #333;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-sizing: border-box; z-index: 50;
+        }
+        .btn-main {
+            background: var(--highlight); color: #000; border: none;
+            padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer;
+        }
+        .btn-main:active { opacity: 0.8; }
+
+        /* --- 弹窗通用 --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 200;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        .bill-info {
-            font-size: 14px;
+        /* 确认弹窗样式 */
+        .confirm-box {
+            background: #21262d; width: 80%; max-width: 320px;
+            border-radius: 12px; border: 1px solid #444; padding: 20px;
+            animation: popIn 0.3s;
         }
-        .total-price {
-            color: var(--gold);
-            font-size: 18px;
-            font-weight: bold;
-        }
+        .conf-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+        .conf-total { border-top: 1px solid #444; padding-top: 12px; font-weight: bold; color: var(--gold); }
+        .conf-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-cancel { background: transparent; border: 1px solid #444; color: #aaa; flex: 1; padding: 10px; border-radius: 6px; }
+        .btn-confirm { background: var(--highlight); color: #000; flex: 1; padding: 10px; border-radius: 6px; font-weight: bold; border: none; }
 
-        .btn-start {
-            background: var(--highlight);
-            color: #000;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
+        /* --- 游戏对话流 --- */
+        #game-location-header { background:#111; padding:8px; text-align:center; font-size:12px; border-bottom:1px solid #333; color: #888; }
+        #game-log-container { flex: 1; padding: 15px; overflow-y: auto; padding-bottom: 30px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-bubble {
+            background: #1f2428; padding: 12px; border-radius: 8px 8px 8px 0;
+            border-left: 3px solid var(--highlight); max-width: 85%;
+            font-size: 14px; line-height: 1.5; animation: slideIn 0.3s ease-out;
         }
-        .btn-start:disabled { background: #555; cursor: not-allowed; }
-
-        /* 防具滑块 */
-        .armor-control {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #30363d;
-            margin-top: 10px;
-        }
-        input[type=range] {
-            width: 100%;
-            accent-color: var(--highlight);
-            margin: 15px 0;
-        }
-
-        /* --- 游戏内样式 --- */
-        #game-log {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background: #0d1117;
-        }
-        .log-entry { margin-bottom: 12px; line-height: 1.5; font-size: 15px; border-left: 2px solid #30363d; padding-left: 10px; }
-        .log-entry.new { animation: fadeIn 0.4s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-
-        .text-blue { color: var(--highlight); }
-        .text-red { color: var(--danger); }
-        .text-gold { color: var(--gold); }
-        
-        #action-panel {
-            background: #161b22;
-            padding: 15px;
-            border-top: 1px solid #30363d;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
+        .chat-bubble.event { border-color: var(--gold); background: #221f10; }
+        .chat-bubble.system { background: transparent; border: none; color: #666; font-size: 12px; text-align: center; margin: 0 auto; }
+        .choice-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; animation: fadeIn 0.5s; }
+        .chat-btn {
+            background: rgba(88,166,255,0.1); border: 1px solid var(--highlight); color: var(--highlight);
+            padding: 8px 15px; border-radius: 20px; font-size: 13px; cursor: pointer;
         }
         
-        .btn-option {
-            background: #21262d;
-            color: var(--text-main);
-            border: 1px solid #30363d;
-            padding: 12px;
-            text-align: left;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-option:hover { background: #30363d; border-color: var(--highlight); }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* 结算页 */
-        .result-container {
-            padding: 40px 20px;
-            text-align: center;
+        /* --- 战斗界面 --- */
+        #screen-combat {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.85)),
+                        url('https://p6.music.126.net/obj/wonDlsKUwrLClGjCm8Kx/77918735759/1a75/b634/30fd/7b268bc5aca0d86a8f7e5ced4f735e35.png');
+            background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 100;
         }
-        .loot-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
+        .combat-stage { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 30px; position: relative; }
+        .fighter-wrapper { display: flex; align-items: center; gap: 15px; position: relative; }
+        .fighter-wrapper.enemy { flex-direction: row-reverse; align-self: flex-end; }
+        .fighter-avatar {
+            width: 70px; height: 70px; border-radius: 50%; border: 3px solid #555;
+            background: #222; object-fit: cover; box-shadow: 0 0 15px rgba(0,0,0,0.8);
+            position: relative; z-index: 2;
         }
-        .loot-item {
-            background: #21262d;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            border: 1px solid #333;
+        .fighter-wrapper.enemy .fighter-avatar { border-color: var(--danger); }
+        .fighter-wrapper.player .fighter-avatar { border-color: var(--highlight); }
+        .fighter-info { display: flex; flex-direction: column; min-width: 100px; }
+        .fighter-wrapper.enemy .fighter-info { text-align: right; align-items: flex-end; }
+        .hp-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.5); border:1px solid #444; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+        .hp-bar-fill { height: 100%; background: var(--green); transition: width 0.3s; }
+        .fighter-wrapper.enemy .hp-bar-fill { background: var(--danger); }
+        .combat-log-area {
+            height: 140px; background: rgba(0,0,0,0.7); border-top: 1px solid #333;
+            padding: 15px; font-family: monospace; font-size: 13px; color: #ccc;
+            overflow-y: auto; flex-shrink: 0; backdrop-filter: blur(5px);
         }
-        .loot-item.tier-5 { border-color: var(--danger); color: var(--danger); }
-        .loot-item.tier-4 { border-color: var(--gold); color: var(--gold); }
-        .loot-item.tier-3 { border-color: var(--purple); color: var(--purple); }
+        /* 战斗动效 */
+        .dmg-popup {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            color: #ff3333; font-size: 24px; font-weight: 900;
+            text-shadow: 2px 2px 0 #000; pointer-events: none; z-index: 10;
+            animation: floatUp 1s ease-out forwards;
+        }
+        @keyframes floatUp { 0% { opacity: 1; top: 0; transform: translateX(-50%) scale(0.5); } 50% { transform: translateX(-50%) scale(1.5); } 100% { opacity: 0; top: -50px; transform: translateX(-50%) scale(1); } }
+        .shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+        .hit-flash { animation: flashRed 0.3s; }
+        @keyframes flashRed { 0% { filter: brightness(1); } 50% { filter: brightness(3) sepia(1) hue-rotate(-50deg) saturate(5); } 100% { filter: brightness(1); } }
+        .atk-lunge-right { animation: lungeRight 0.3s; }
+        @keyframes lungeRight { 0% { transform: translateX(0); } 50% { transform: translateX(30px); } 100% { transform: translateX(0); } }
+        .atk-lunge-left { animation: lungeLeft 0.3s; }
+        @keyframes lungeLeft { 0% { transform: translateX(0); } 50% { transform: translateX(-30px); } 100% { transform: translateX(0); } }
+
+        /* --- 搜刮弹窗 --- */
+        .magnify-glass { font-size: 60px; animation: scanCircle 1.2s linear infinite; margin-bottom: 20px; }
+        @keyframes scanCircle { from { transform: rotate(0deg) translateX(20px) rotate(0deg); } to { transform: rotate(360deg) translateX(20px) rotate(-360deg); } }
+        .loot-card {
+            display: none; background: #21262d; padding: 25px; border-radius: 12px;
+            text-align: center; border: 2px solid #444; width: 220px; animation: popIn 0.4s;
+        }
 
     </style>
 </head>
 <body>
 
-    <!-- 顶部常驻资源栏 -->
     <div id="status-bar">
-        <div class="resource-item">
-            <span style="color: var(--gold); margin-right:5px;">🪙</span>
-            <span id="ui-money">500,000</span>
+        <div>🪙 <span id="ui-money">0</span></div>
+        <div>❤️ <span id="ui-hp-global">100%</span></div>
+        <div>🎒 <span id="ui-bag">0</span></div>
+    </div>
+
+    <!-- 1. 备战 -->
+    <div id="screen-lobby" class="screen active">
+        <div class="lobby-content">
+            <h4 style="color:var(--highlight); margin:10px 0;">选择干员</h4>
+            <div class="card-row" id="char-list"></div>
+            
+            <h4 style="color:var(--highlight); margin:10px 0;">配备武器</h4>
+            <div class="card-row" id="weapon-list"></div>
+
+            <h4 style="color:var(--highlight); margin:10px 0;">防护等级</h4>
+            <div style="background:#21262d; padding:15px; border-radius:8px; border:1px solid #333;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span id="armor-name">无防具</span>
+                    <span id="cost-preview" style="color:var(--gold)">$0</span>
+                </div>
+                <input type="range" id="armor-slider" min="0" max="3" value="0" style="width:100%; accent-color:var(--highlight)">
+            </div>
+
+            <!-- 作战记录 -->
+            <div class="history-section">
+                <h4 style="color:#aaa; margin-bottom:15px; border-left:3px solid #555; padding-left:10px;">行动记录</h4>
+                <div class="history-list" id="history-container">
+                    <div style="text-align:center; color:#555; padding:20px;">暂无数据</div>
+                </div>
+            </div>
         </div>
-        <div class="resource-item">
-            <span style="color: var(--danger); margin-right:5px;">❤️</span>
-            <span id="ui-hp">100%</span>
-        </div>
-        <div class="resource-item">
-            <span style="color: var(--purple); margin-right:5px;">🎒</span>
-            <span id="ui-bag-val">0</span>
+        <div id="checkout-bar">
+            <span style="color:#666; font-size:12px">准备行动?</span>
+            <!-- 触发确认弹窗，而不是直接开始 -->
+            <button class="btn-main" onclick="UI.showConfirmModal()">开始行动</button>
         </div>
     </div>
 
-    <div id="main-container">
+    <!-- 2. 游戏内 -->
+    <div id="screen-game" class="screen">
+        <div id="game-location-header">📍 <span id="ui-loc">部署中...</span></div>
+        <div id="game-log-container"></div>
+    </div>
 
-        <!-- 1. 备战大厅 (Lobby) -->
-        <div id="screen-lobby" class="screen active">
+    <!-- 3. 战斗 -->
+    <div id="screen-combat" class="screen">
+        <div class="combat-stage">
+            <div class="fighter-wrapper enemy" id="fighter-enemy">
+                <img id="enemy-img" class="fighter-avatar" src="">
+                <div class="fighter-info">
+                    <div id="enemy-name" style="font-weight:bold; color:var(--danger)">敌人</div>
+                    <div class="hp-bar-bg"><div class="hp-bar-fill" id="enemy-hp-bar" style="width:100%"></div></div>
+                    <div id="enemy-hp-text" style="font-size:10px; color:#fff; text-shadow:0 0 2px #000">100/100</div>
+                </div>
+            </div>
+            <div class="fighter-wrapper player" id="fighter-player">
+                <img id="player-img" class="fighter-avatar" src="">
+                <div class="fighter-info">
+                    <div id="player-name" style="font-weight:bold; color:var(--highlight)">我方</div>
+                    <div class="hp-bar-bg"><div class="hp-bar-fill" id="player-hp-bar" style="width:100%"></div></div>
+                    <div id="player-hp-text" style="font-size:10px; color:#fff; text-shadow:0 0 2px #000">100/100</div>
+                </div>
+            </div>
+        </div>
+        <div class="combat-log-area" id="combat-log"></div>
+    </div>
+
+    <!-- 弹窗：搜刮 -->
+    <div id="modal-loot" class="modal-overlay">
+        <div id="loot-anim" style="text-align:center">
+            <div class="magnify-glass">🔍</div>
+            <div style="color:#aaa; margin-top:10px;">正在搜索物资...</div>
+        </div>
+        <div id="loot-result" class="loot-card">
+            <img id="loot-item-img" style="width:80px; height:80px; object-fit:contain; margin-bottom:10px;" src="">
+            <div id="loot-item-name" style="font-size:16px; font-weight:bold; margin-bottom:5px; color:#fff">物品名</div>
+            <div id="loot-item-val" style="color:var(--gold); margin-bottom:15px; font-weight:bold">$0</div>
+            <button class="btn-main" onclick="Game.closeLootModal()" style="width:100%">收下</button>
+        </div>
+    </div>
+
+    <!-- 弹窗：出击确认 -->
+    <div id="modal-confirm" class="modal-overlay">
+        <div class="confirm-box">
+            <h3 style="margin-top:0; color:var(--text-main); text-align:center;">行动确认</h3>
             
-            <div class="lobby-section">
-                <div class="section-title">/// 选择特勤干员 ///</div>
-                <div class="card-scroll-view" id="char-select-container">
-                    <!-- 动态生成 -->
-                </div>
-
-                <div class="section-title" style="margin-top:25px">/// 采购主武器 ///</div>
-                <div class="card-scroll-view" id="weapon-select-container">
-                    <!-- 动态生成 -->
-                </div>
-
-                <div class="section-title" style="margin-top:25px">/// 防具等级 ///</div>
-                <div class="armor-control">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span>防弹衣等级: <span id="armor-level-text" class="text-blue">无防具</span></span>
-                        <span id="armor-price-text" class="text-gold">$0</span>
-                    </div>
-                    <input type="range" id="armor-slider" min="0" max="3" value="0" step="1">
-                    <div style="font-size:12px; color:#666;">
-                        * 提升生存率与幸运值，但会增加出击成本。
-                    </div>
-                </div>
+            <div class="conf-row">
+                <span style="color:#888">当前资金:</span>
+                <span id="conf-balance" style="font-family:monospace">$0</span>
+            </div>
+            <div class="conf-row">
+                <span style="color:#888">装备花费:</span>
+                <span id="conf-cost" style="color:var(--danger); font-family:monospace">-$0</span>
+            </div>
+            <div class="conf-row conf-total">
+                <span>预计剩余:</span>
+                <span id="conf-remain" style="font-family:monospace">$0</span>
             </div>
 
-            <!-- 底部账单与开始按钮 -->
-            <div id="checkout-bar">
-                <div class="bill-info">
-                    <div>当前余额: <span id="ui-balance-preview">500000</span></div>
-                    <div>出击花费: <span class="total-price" id="ui-total-cost">0</span></div>
-                </div>
-                <button class="btn-start" onclick="Game.attemptStart()">开始行动</button>
+            <div class="conf-actions">
+                <button class="btn-cancel" onclick="document.getElementById('modal-confirm').style.display='none'">取消</button>
+                <button class="btn-confirm" onclick="Game.finalStart()">确认支付</button>
             </div>
         </div>
-
-        <!-- 2. 战斗界面 (In-Game) -->
-        <div id="screen-game" class="screen">
-            <div id="game-location-header" style="padding:10px; background:#111; font-size:12px; color:#666; text-align:center;">
-                DEPLOYED AT: <span id="ui-loc-name" style="color:#fff">LOADING...</span>
-            </div>
-            <div id="game-log"></div>
-            <div id="action-panel"></div>
-        </div>
-
-        <!-- 3. 结算界面 (Result) -->
-        <div id="screen-result" class="screen">
-            <div class="result-container">
-                <h1 id="res-title">行动结束</h1>
-                <p id="res-desc">结算信息...</p>
-                <h2 class="text-gold">收益: +<span id="res-money">0</span></h2>
-                
-                <div style="text-align:left; margin-top:20px; font-size:14px; color:#888;">物资清单:</div>
-                <div class="loot-grid" id="res-loot-grid"></div>
-
-                <button class="btn-start" style="width:100%; margin-top:30px;" onclick="Game.toLobby()">返回基地</button>
-            </div>
-        </div>
-
     </div>
 
 <script>
-/**
- * 游戏配置数据
- * imgUrl: 这里使用了占位符图片服务，你可以换成具体的图片链接
- */
+// --- 数据配置 ---
 const DATA = {
     chars: [
-        { 
-            id: 'dragon', name: '威龙', role: '突击', 
-            desc: '精通正面作战，战力极高', 
-            stats: { atk: 9, surv: 5, luck: 5 },
-            img: 'https://placehold.co/140x100/1a1a1a/FFF?text=威龙'
-        },
-        { 
-            id: 'bee', name: '蜂医', role: '支援', 
-            desc: '拥有自救能力，甚至能逃跑', 
-            stats: { atk: 5, surv: 9, luck: 5 },
-            img: 'https://placehold.co/140x100/1a1a1a/FFF?text=蜂医'
-        },
-        { 
-            id: 'wolf', name: '红狼', role: '侦查', 
-            desc: '能提前发现危险并规避', 
-            stats: { atk: 6, surv: 6, luck: 4 },
-            img: 'https://placehold.co/140x100/1a1a1a/FFF?text=红狼'
-        },
-        { 
-            id: 'runner', name: '特勤干员', role: '通用', 
-            desc: '基础干员，幸运较高', 
-            stats: { atk: 3, surv: 3, luck: 8 },
-            img: 'https://placehold.co/140x100/1a1a1a/FFF?text=干员'
-        }
+        { id: 0, name: '威龙', role: '突击', stats: {atk: 12, hp: 140}, img: 'https://placehold.co/100/222/FFF?text=威龙' },
+        { id: 1, name: '蜂医', role: '支援', stats: {atk: 8, hp: 180}, img: 'https://placehold.co/100/222/FFF?text=蜂医' },
+        { id: 2, name: '红狼', role: '侦查', stats: {atk: 10, hp: 120}, img: 'https://placehold.co/100/222/FFF?text=红狼' }
     ],
     weapons: [
-        { 
-            id: 'knife', name: '战术匕首', type: 'close', cost: 0, power: 10,
-            desc: '无花费，跑刀首选',
-            img: 'https://placehold.co/140x100/333/FFF?text=匕首' 
-        },
-        { 
-            id: 'smg', name: 'MP5冲锋枪', type: 'close', cost: 15000, power: 35,
-            desc: '近距离射速极快',
-            img: 'https://placehold.co/140x100/333/FFF?text=MP5' 
-        },
-        { 
-            id: 'ar', name: 'M4A1步枪', type: 'mid', cost: 45000, power: 55,
-            desc: '中远距离均衡全能',
-            img: 'https://placehold.co/140x100/333/FFF?text=M4A1' 
-        },
-        { 
-            id: 'sniper', name: 'AWM狙击枪', type: 'far', cost: 70000, power: 80,
-            desc: '极远距离一击必杀',
-            img: 'https://placehold.co/140x100/333/FFF?text=AWM' 
-        }
+        { id: 0, name: '战术匕首', cost: 0, atk: 10, img: 'https://placehold.co/100/333/FFF?text=匕首' },
+        { id: 1, name: 'MP5冲锋枪', cost: 20000, atk: 25, img: 'https://placehold.co/100/333/FFF?text=MP5' },
+        { id: 2, name: 'M4A1步枪', cost: 50000, atk: 45, img: 'https://placehold.co/100/333/FFF?text=M4A1' }
     ],
-    armorCosts: [0, 20000, 50000, 100000], // 0-3级防具价格
-    armorNames: ['无防具', '一级甲 (轻型)', '三级甲 (标准)', '五级甲 (重型)'],
-    
-    // 掉落表
+    armor: [
+        { name: '无防具', cost: 0, hp: 0 },
+        { name: '一级甲', cost: 20000, hp: 50 },
+        { name: '三级甲', cost: 50000, hp: 100 },
+        { name: '五级甲', cost: 100000, hp: 200 }
+    ],
+    enemies: [
+        { name: '游荡者', hp: 80, atk: 12, img: 'https://placehold.co/100/511/FFF?text=AI' },
+        { name: '全装特遣', hp: 160, atk: 30, img: 'https://placehold.co/100/811/FFF?text=Enemy' },
+        { name: '首领阿萨拉', hp: 400, atk: 45, img: 'https://placehold.co/100/800/FFF?text=BOSS' }
+    ],
     loot: [
-        { name: '螺丝钉', val: 500, tier: 1 },
-        { name: '打火机', val: 1500, tier: 1 },
-        { name: 'CPU风扇', val: 4000, tier: 2 },
-        { name: '集换式卡牌', val: 12000, tier: 2 },
-        { name: '金条', val: 40000, tier: 3 },
-        { name: '曼德尔砖', val: 150000, tier: 4 },
-        { name: '【非洲之心】', val: 1200000, tier: 5 }
+        { name: '打火机', val: 1000, tier: 1, img: 'https://placehold.co/120/333/FFF?text=打火机' },
+        { name: 'CPU风扇', val: 5000, tier: 2, img: 'https://placehold.co/120/4a90e2/FFF?text=CPU' },
+        { name: '金砖', val: 50000, tier: 3, img: 'https://placehold.co/120/ffd700/000?text=金砖' },
+        { name: '机密文件', val: 800000, tier: 4, img: 'https://placehold.co/120/ff0000/FFF?text=机密文件' }
     ]
 };
 
 const State = {
-    money: 500000,
-    pityLuck: 0,
-    
-    // 备战选择状态
-    selected: {
-        charIndex: -1,
-        weaponIndex: -1,
-        armorLevel: 0
-    },
-
-    // 局内状态
-    inGame: {
-        hp: 100,
-        bagValue: 0,
-        bagItems: [],
-        luck: 0,
-        isDead: false
-    }
+    money: 300000,
+    sel: { char: 0, weap: 0, armor: 0 },
+    game: { curHp: 0, maxHp: 0, atk: 0, bagVal: 0, bag: [] },
+    combat: null
 };
 
-const Game = {
-    init: function() {
-        UI.initLobby();
-        UI.updateBalance();
-    },
-
-    // --- 备战逻辑 ---
-
-    selectChar: function(idx) {
-        State.selected.charIndex = idx;
-        UI.renderSelectionState();
-    },
-
-    selectWeapon: function(idx) {
-        State.selected.weaponIndex = idx;
-        UI.renderSelectionState();
-        UI.updateCostPreview();
-    },
-
-    setArmor: function(val) {
-        State.selected.armorLevel = parseInt(val);
-        document.getElementById('armor-level-text').innerText = DATA.armorNames[val];
-        document.getElementById('armor-price-text').innerText = '$' + DATA.armorCosts[val];
-        UI.updateCostPreview();
-    },
-
-    // 计算总花费
-    calculateCost: function() {
-        let cost = 0;
-        if (State.selected.weaponIndex !== -1) {
-            cost += DATA.weapons[State.selected.weaponIndex].cost;
-        }
-        cost += DATA.armorCosts[State.selected.armorLevel];
-        return cost;
-    },
-
-    attemptStart: function() {
-        if (State.selected.charIndex === -1) {
-            alert("请选择一名干员！");
-            return;
-        }
-        if (State.selected.weaponIndex === -1) {
-            alert("请选择主武器！");
-            return;
-        }
-
-        const totalCost = this.calculateCost();
-        if (State.money < totalCost) {
-            alert("资金不足！请调整装备或选择跑刀。");
-            return;
-        }
-
-        // 扣费并开始
-        State.money -= totalCost;
-        this.startRun(totalCost);
-    },
-
-    startRun: function(investedCost) {
-        // 初始化数值
-        const char = DATA.chars[State.selected.charIndex];
-        // 幸运公式：角色基础 + (装备投入/10000) + 连败补偿
-        const gearLuck = Math.floor(investedCost / 10000);
-        
-        State.inGame = {
-            hp: 100,
-            bagValue: 0,
-            bagItems: [],
-            luck: char.stats.luck + gearLuck + State.pityLuck,
-            isDead: false
+// --- 作战记录系统 (Local Storage) ---
+const RecordSystem = {
+    key: 'delta_game_records',
+    add: (charName, result, profit) => {
+        const rec = {
+            char: charName,
+            res: result, // 'win' or 'loss'
+            profit: profit,
+            time: new Date().toLocaleTimeString()
         };
-
-        UI.switchScreen('screen-game');
-        UI.updateBalance();
-        UI.updateInGameStatus();
-        UI.clearLog();
-
-        // 随机出生
-        const spawnType = Math.random() > 0.5 ? 'EAST' : 'WEST';
-        this.triggerNode(spawnType === 'EAST' ? 'SPAWN_EAST' : 'SPAWN_WEST');
+        const list = RecordSystem.get();
+        list.unshift(rec); // 新的在前面
+        if(list.length > 10) list.pop(); // 只留10条
+        localStorage.setItem(RecordSystem.key, JSON.stringify(list));
+        UI.renderHistory();
     },
-
-    // --- 游戏循环 ---
-
-    triggerNode: function(nodeId) {
-        UI.setLoc(nodeId);
-        
-        const char = DATA.chars[State.selected.charIndex];
-        const weapon = DATA.weapons[State.selected.weaponIndex];
-
-        // 简化的剧本逻辑
-        if (nodeId === 'SPAWN_EAST') {
-            UI.log(`>> 部署完成：零号大坝【东侧】。`, 'text-blue');
-            UI.log(`干员 ${char.name} 已就位，手持 ${weapon.name}。`);
-            UI.showActions([
-                { text: "强攻行政楼 (高风险)", cb: () => this.triggerNode('ADMIN_BUILDING') },
-                { text: "摸索游客中心 (中风险)", cb: () => this.triggerNode('VISITOR_CENTER') },
-                { text: "外围架枪 (低风险)", cb: () => this.triggerNode('CAMPING') }
-            ]);
-        } 
-        else if (nodeId === 'SPAWN_WEST') {
-            UI.log(`>> 部署完成：零号大坝【西侧】。`, 'text-blue');
-            UI.showActions([
-                { text: "突击主楼西侧 (高风险)", cb: () => this.triggerNode('MAIN_WEST') },
-                { text: "搜刮水泥厂 (低风险)", cb: () => this.triggerNode('FACTORY') }
-            ]);
-        }
-        else if (['ADMIN_BUILDING', 'MAIN_WEST'].includes(nodeId)) {
-            UI.log("进入高价值区域，四周脚步声杂乱...", 'text-red');
-            this.encounter(0.7, 'elite', 100, nodeId); // 70%概率遇敌
-        }
-        else if (['VISITOR_CENTER', 'FACTORY'].includes(nodeId)) {
-            UI.log("区域相对安静，开始搜寻物资。");
-            this.encounter(0.3, 'scav', 40, nodeId); // 30%概率遇敌
-        }
-        else if (nodeId === 'CAMPING') {
-            UI.log("你趴在草丛中等待猎物...");
-            if (Math.random() > 0.5) this.encounter(1.0, 'player', 60, nodeId);
-            else {
-                UI.log("等了半天没看到人。");
-                this.handleSearch();
-            }
-        }
-        else if (nodeId === 'EXTRACT') {
-            UI.log(">> 抵达撤离点，直升机已降落！", 'text-green');
-            UI.showActions([
-                { text: "确认撤离", cb: () => this.finish(true) }
-            ]);
-        }
-    },
-
-    encounter: function(prob, enemyType, power, locId) {
-        if (Math.random() > prob) {
-            // 安全，直接搜刮
-            this.handleSearch();
-            return;
-        }
-
-        let enemyName = enemyType === 'elite' ? '全装特遣队' : (enemyType === 'player' ? '跑刀玩家' : '游荡者');
-        UI.log(`⚠️ 接触敌对目标：[${enemyName}]`, 'text-red');
-
-        // 侦查角色特权
-        if (DATA.chars[State.selected.charIndex].id === 'wolf' && Math.random() < 0.6) {
-            UI.showActions([
-                { text: "[红狼天赋] 规避战斗", cb: () => { UI.log("依靠听觉绕过了敌人。"); this.handleSearch(); } },
-                { text: "开火战斗", cb: () => this.combat(power) }
-            ]);
-            return;
-        }
-
-        UI.showActions([
-            { text: "开火战斗", cb: () => this.combat(power) }
-        ]);
-    },
-
-    combat: function(enemyPower) {
-        const char = DATA.chars[State.selected.charIndex];
-        const weapon = DATA.weapons[State.selected.weaponIndex];
-        const armor = State.selected.armorLevel;
-
-        // 战力计算
-        let myPower = (char.stats.atk * 8) + weapon.power + (armor * 15);
-        // 随机波动
-        let roll = Math.floor(Math.random() * 40); 
-        let finalPower = myPower + roll;
-
-        UI.log(`交火中... 战力判定: ${finalPower} vs ${enemyPower + 20}`);
-
-        if (finalPower >= enemyPower) {
-            UI.log(">> 击杀目标！获得战利品。", 'text-green');
-            this.addLoot({ name: '敌人狗牌/装备', val: enemyPower * 150, tier: 3 });
-            this.handleSearch();
-        } else {
-            // 战败
-            if (char.id === 'bee' && Math.random() < 0.5) {
-                UI.log("[蜂医天赋] 重伤倒地，但在烟雾掩护下爬走了！", 'text-purple');
-                State.inGame.hp = 10;
-                State.inGame.bagValue = Math.floor(State.inGame.bagValue / 2);
-                UI.updateInGameStatus();
-                this.handleSearch();
-            } else {
-                this.finish(false);
-            }
-        }
-    },
-
-    handleSearch: function() {
-        // 搜刮逻辑
-        const luck = State.inGame.luck;
-        const roll = Math.floor(Math.random() * 100) + luck;
-        
-        let found = DATA.loot[0]; // 默认垃圾
-        if (roll > 130) found = DATA.loot[6]; // 大红
-        else if (roll > 110) found = DATA.loot[5];
-        else if (roll > 90) found = DATA.loot[4];
-        else if (roll > 60) found = DATA.loot[3];
-        else if (roll > 30) found = DATA.loot[2];
-
-        UI.log(`搜索箱子发现: ${found.name}`, found.tier >= 4 ? 'text-gold' : '');
-        this.addLoot(found);
-
-        // 决策下一步
-        if (State.inGame.bagItems.length >= 3 || Math.random() > 0.7) {
-            setTimeout(() => this.triggerNode('EXTRACT'), 1000);
-        } else {
-            UI.showActions([
-                { text: "寻找下一个搜刮点", cb: () => {
-                    const next = Math.random() > 0.5 ? 'VISITOR_CENTER' : 'FACTORY';
-                    this.triggerNode(next);
-                }}
-            ]);
-        }
-    },
-
-    addLoot: function(item) {
-        State.inGame.bagItems.push(item);
-        State.inGame.bagValue += item.val;
-        UI.updateInGameStatus();
-    },
-
-    finish: function(success) {
-        UI.switchScreen('screen-result');
-        const rTitle = document.getElementById('res-title');
-        const rDesc = document.getElementById('res-desc');
-        const rMoney = document.getElementById('res-money');
-        const rGrid = document.getElementById('res-loot-grid');
-
-        rGrid.innerHTML = '';
-
-        if (success) {
-            rTitle.innerText = "撤离成功";
-            rTitle.style.color = "var(--green)";
-            rDesc.innerText = "物资已成功带出。";
-            rMoney.innerText = State.inGame.bagValue;
-            
-            State.money += State.inGame.bagValue;
-            State.pityLuck = 0; // 清除补偿
-
-            State.inGame.bagItems.forEach(item => {
-                rGrid.innerHTML += `<div class="loot-item tier-${item.tier}">${item.name}<br>$${item.val}</div>`;
-            });
-        } else {
-            rTitle.innerText = "行动失败";
-            rTitle.style.color = "var(--danger)";
-            rDesc.innerText = "干员阵亡，物资全部丢失。";
-            rMoney.innerText = "0";
-            
-            State.pityLuck += 5;
-            rGrid.innerHTML = `<div class="loot-item tier-3">幸运补偿 +5</div>`;
-        }
-        UI.updateBalance();
-    },
-
-    toLobby: function() {
-        UI.switchScreen('screen-lobby');
+    get: () => {
+        const s = localStorage.getItem(RecordSystem.key);
+        return s ? JSON.parse(s) : [];
     }
 };
 
+// --- UI 控制 ---
 const UI = {
-    initLobby: function() {
-        // 渲染干员卡片
-        const charHtml = DATA.chars.map((c, i) => `
-            <div class="card" onclick="Game.selectChar(${i})" id="char-card-${i}">
-                <img src="${c.img}" class="card-img">
-                <div class="card-body">
-                    <div class="card-title">${c.name}</div>
-                    <div class="card-desc">${c.role} | ${c.desc}</div>
-                    <div class="stat-badges">
-                        <span class="badge">⚔️${c.stats.atk}</span>
-                        <span class="badge">🛡️${c.stats.surv}</span>
-                        <span class="badge">🍀${c.stats.luck}</span>
-                    </div>
-                </div>
+    init: () => {
+        document.getElementById('char-list').innerHTML = DATA.chars.map((c,i) => `
+            <div class="card ${i===0?'selected':''}" onclick="UI.selChar(${i}, this)">
+                <img src="${c.img}">
+                <div class="card-info"><b>${c.name}</b><br>攻:${c.stats.atk} 血:${c.stats.hp}</div>
             </div>
         `).join('');
-        document.getElementById('char-select-container').innerHTML = charHtml;
-
-        // 渲染武器卡片
-        const weapHtml = DATA.weapons.map((w, i) => `
-            <div class="card" onclick="Game.selectWeapon(${i})" id="weap-card-${i}">
-                <img src="${w.img}" class="card-img">
-                <div class="card-body">
-                    <div class="card-title">${w.name}</div>
-                    <div class="card-desc">${w.desc}</div>
-                    <div class="text-gold" style="font-size:12px; font-weight:bold; margin-top:5px">$${w.cost}</div>
-                </div>
+        document.getElementById('weapon-list').innerHTML = DATA.weapons.map((w,i) => `
+            <div class="card ${i===0?'selected':''}" onclick="UI.selWeap(${i}, this)">
+                <img src="${w.img}">
+                <div class="card-info"><b>${w.name}</b><br>$${w.cost}</div>
             </div>
         `).join('');
-        document.getElementById('weapon-select-container').innerHTML = weapHtml;
-
-        // 防具滑块事件
         document.getElementById('armor-slider').oninput = function() {
-            Game.setArmor(this.value);
+            State.sel.armor = parseInt(this.value);
+            UI.updateLobby();
         };
+        UI.updateLobby();
+        UI.renderHistory(); // 加载历史
     },
 
-    renderSelectionState: function() {
-        // 清除旧选中
-        document.querySelectorAll('.card').forEach(el => el.classList.remove('selected'));
-        
-        // 高亮新选中
-        if (State.selected.charIndex !== -1) {
-            document.getElementById(`char-card-${State.selected.charIndex}`).classList.add('selected');
+    renderHistory: () => {
+        const list = RecordSystem.get();
+        const con = document.getElementById('history-container');
+        if(list.length === 0) {
+            con.innerHTML = '<div style="text-align:center; color:#555; padding:20px;">暂无数据</div>';
+            return;
         }
-        if (State.selected.weaponIndex !== -1) {
-            document.getElementById(`weap-card-${State.selected.weaponIndex}`).classList.add('selected');
-        }
+        con.innerHTML = list.map(r => `
+            <div class="history-item ${r.res}">
+                <div>
+                    <div class="h-main">${r.res==='win'?'撤离成功':'行动阵亡'} <span class="h-sub">(${r.char})</span></div>
+                    <div class="h-sub">${r.time}</div>
+                </div>
+                <div class="h-val" style="color:${r.profit>=0?'#e3b341':'#ff6b6b'}">
+                    ${r.profit>=0?'+':''}${r.profit}
+                </div>
+            </div>
+        `).join('');
     },
 
-    updateCostPreview: function() {
-        const total = Game.calculateCost();
-        document.getElementById('ui-total-cost').innerText = '$' + total;
-        
-        // 余额预警
-        const balanceSpan = document.getElementById('ui-balance-preview');
-        balanceSpan.style.color = State.money < total ? 'var(--danger)' : 'var(--text-main)';
+    selChar: (i, el) => { State.sel.char = i; UI.hl(el); UI.updateLobby(); },
+    selWeap: (i, el) => { State.sel.weap = i; UI.hl(el); UI.updateLobby(); },
+    hl: (el) => {
+        el.parentElement.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected');
+    },
+    updateLobby: () => {
+        const armor = DATA.armor[State.sel.armor];
+        const cost = DATA.weapons[State.sel.weap].cost + armor.cost;
+        document.getElementById('ui-money').innerText = State.money;
+        document.getElementById('armor-name').innerText = armor.name;
+        document.getElementById('cost-preview').innerText = `$${cost}`;
+    },
+    
+    // 弹窗逻辑
+    showConfirmModal: () => {
+        const cost = DATA.weapons[State.sel.weap].cost + DATA.armor[State.sel.armor].cost;
+        if(State.money < cost) return alert("资金不足！");
+
+        document.getElementById('conf-balance').innerText = `$${State.money}`;
+        document.getElementById('conf-cost').innerText = `-$${cost}`;
+        document.getElementById('conf-remain').innerText = `$${State.money - cost}`;
+        document.getElementById('modal-confirm').style.display = 'flex';
     },
 
-    updateBalance: function() {
-        document.getElementById('ui-money').innerText = State.money.toLocaleString();
-        document.getElementById('ui-balance-preview').innerText = State.money.toLocaleString();
+    showScreen: (id) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
     },
-
-    updateInGameStatus: function() {
-        document.getElementById('ui-hp').innerText = State.inGame.hp + '%';
-        document.getElementById('ui-bag-val').innerText = State.inGame.bagValue.toLocaleString();
+    chat: (text, type='normal') => {
+        const c = document.getElementById('game-log-container');
+        const d = document.createElement('div');
+        d.className = `chat-bubble ${type}`;
+        d.innerHTML = text;
+        c.appendChild(d);
+        c.scrollTop = c.scrollHeight;
     },
-
-    log: function(msg, cls='') {
-        const box = document.getElementById('game-log');
+    ask: (opts) => {
+        const c = document.getElementById('game-log-container');
         const div = document.createElement('div');
-        div.className = `log-entry new ${cls}`;
-        div.innerText = msg;
-        box.appendChild(div);
+        div.className = 'choice-container';
+        opts.forEach(o => {
+            const b = document.createElement('button');
+            b.className = 'chat-btn';
+            b.innerText = o.txt;
+            b.onclick = () => { div.remove(); UI.chat(`> ${o.txt}`, 'system'); o.cb(); };
+            div.appendChild(b);
+        });
+        c.appendChild(div);
+        c.scrollTop = c.scrollHeight;
+    }
+};
+
+// --- 游戏逻辑 ---
+const Game = {
+    finalStart: () => {
+        document.getElementById('modal-confirm').style.display = 'none';
+        const cost = DATA.weapons[State.sel.weap].cost + DATA.armor[State.sel.armor].cost;
+        State.money -= cost;
+        State.game.currentCost = cost; // 记录成本用于计算净利润
+        
+        const c = DATA.chars[State.sel.char];
+        const w = DATA.weapons[State.sel.weap];
+        const a = DATA.armor[State.sel.armor];
+        State.game = {
+            ...State.game,
+            curHp: c.stats.hp + a.hp,
+            maxHp: c.stats.hp + a.hp,
+            atk: c.stats.atk + w.atk,
+            bagVal: 0, bag: [],
+            currentCost: cost // 记录本局投入
+        };
+        
+        UI.showScreen('screen-game');
+        document.getElementById('game-log-container').innerHTML = '';
+        document.getElementById('ui-hp-global').innerText = '100%';
+        document.getElementById('ui-bag').innerText = '0';
+        Game.flow('START');
+    },
+
+    flow: (step) => {
+        if(step === 'START') {
+            document.getElementById('ui-loc').innerText = "零号大坝·外围";
+            UI.chat("你已抵达大坝外围，空气中弥漫着硝烟。", 'event');
+            setTimeout(() => {
+                UI.chat("侦测到两个信号源，请指示。");
+                UI.ask([
+                    { txt: "前往行政楼 (高风险)", cb: ()=>Game.flow('ADMIN') },
+                    { txt: "搜查游客中心 (一般)", cb: ()=>Game.flow('VISITOR') }
+                ]);
+            }, 600);
+        }
+        else if(step === 'ADMIN') {
+            document.getElementById('ui-loc').innerText = "行政楼";
+            UI.chat("行政楼内部光线昏暗...", 'event');
+            if(Math.random() < 0.8) {
+                UI.chat("前方发现全装敌人！准备交战！", 'system');
+                setTimeout(() => Game.initCombat('hard'), 1000);
+            } else {
+                UI.chat("这里有个高级保险箱。");
+                UI.ask([{ txt: "开启保险箱", cb: ()=>Game.loot(3) }]);
+            }
+        }
+        else if(step === 'VISITOR') {
+            document.getElementById('ui-loc').innerText = "游客中心";
+            UI.chat("这里看起来被搜刮过了。", 'event');
+            if(Math.random() < 0.4) {
+                UI.chat("有个游荡者在角落。", 'system');
+                setTimeout(() => Game.initCombat('easy'), 1000);
+            } else {
+                UI.chat("发现一个遗落的背包。");
+                UI.ask([{ txt: "检查背包", cb: ()=>Game.loot(1) }]);
+            }
+        }
+        else if(step === 'AFTER') {
+            UI.chat("区域安全。下一步？");
+            UI.ask([
+                { txt: "继续探索", cb: ()=>Game.flow(Math.random()>0.5?'ADMIN':'VISITOR') },
+                { txt: "撤离", cb: ()=>Game.extract() }
+            ]);
+        }
+    },
+
+    loot: (tier) => {
+        const m = document.getElementById('modal-loot');
+        m.style.display = 'flex';
+        document.getElementById('loot-anim').style.display = 'block';
+        document.getElementById('loot-result').style.display = 'none';
+        
+        const roll = Math.random() * 100 + (tier*10);
+        let item = DATA.loot[0];
+        let wait = 1000;
+        if(roll > 95) { item = DATA.loot[3]; wait = 3000; }
+        else if(roll > 75) { item = DATA.loot[2]; wait = 2000; }
+        else if(roll > 40) { item = DATA.loot[1]; wait = 1500; }
+        
+        setTimeout(() => {
+            document.getElementById('loot-anim').style.display = 'none';
+            document.getElementById('loot-result').style.display = 'block';
+            document.getElementById('loot-item-img').src = item.img;
+            document.getElementById('loot-item-name').innerText = item.name;
+            document.getElementById('loot-item-name').style.color = item.tier>=3 ? 'gold' : 'white';
+            document.getElementById('loot-item-val').innerText = `$${item.val}`;
+            Game.tempItem = item;
+        }, wait);
+    },
+    
+    closeLootModal: () => {
+        document.getElementById('modal-loot').style.display = 'none';
+        State.game.bag.push(Game.tempItem);
+        State.game.bagVal += Game.tempItem.val;
+        document.getElementById('ui-bag').innerText = State.game.bagVal;
+        UI.chat(`获得 <span style="color:gold">${Game.tempItem.name}</span>`, 'system');
+        Game.flow('AFTER');
+    },
+
+    initCombat: (diff) => {
+        UI.showScreen('screen-combat');
+        let enemy = DATA.enemies[0];
+        if(diff === 'hard') enemy = DATA.enemies[1];
+        if(diff === 'boss') enemy = DATA.enemies[2];
+        State.combat = { round: 0, enemy: { ...enemy, maxHp: enemy.hp }, player: State.game };
+        
+        document.getElementById('combat-log').innerHTML = '<div style="color:#aaa">>>> 战斗系统启动 <<<</div>';
+        document.getElementById('enemy-img').src = enemy.img;
+        document.getElementById('enemy-name').innerText = enemy.name;
+        document.getElementById('player-img').src = DATA.chars[State.sel.char].img;
+        
+        Game.updateCombatBars();
+        setTimeout(Game.turnPlayer, 1000);
+    },
+
+    updateCombatBars: () => {
+        const c = State.combat;
+        const ep = (c.enemy.hp / c.enemy.maxHp) * 100;
+        document.getElementById('enemy-hp-bar').style.width = Math.max(0, ep) + '%';
+        document.getElementById('enemy-hp-text').innerText = `${c.enemy.hp}/${c.enemy.maxHp}`;
+        
+        const pp = (c.player.curHp / c.player.maxHp) * 100;
+        document.getElementById('player-hp-bar').style.width = Math.max(0, pp) + '%';
+        document.getElementById('player-hp-text').innerText = `${c.player.curHp}/${c.player.maxHp}`;
+        document.getElementById('ui-hp-global').innerText = Math.floor(pp) + '%';
+    },
+
+    showDmg: (targetId, dmg) => {
+        const wrapper = document.getElementById(targetId);
+        const el = document.createElement('div');
+        el.className = 'dmg-popup';
+        el.innerText = `-${dmg}`;
+        wrapper.appendChild(el);
+        setTimeout(()=>el.remove(), 1000);
+        const img = wrapper.querySelector('img');
+        img.classList.add('shake-anim', 'hit-flash');
+        setTimeout(() => img.classList.remove('shake-anim', 'hit-flash'), 400);
+    },
+
+    turnPlayer: () => {
+        if(State.combat.player.curHp <= 0) return Game.endCombat(false);
+        document.getElementById('player-img').classList.add('atk-lunge-right');
+        setTimeout(() => document.getElementById('player-img').classList.remove('atk-lunge-right'), 300);
+
+        const dmg = Math.floor(State.combat.player.atk * (0.9 + Math.random()*0.3));
+        State.combat.enemy.hp -= dmg;
+        if(State.combat.enemy.hp < 0) State.combat.enemy.hp = 0;
+        
+        setTimeout(() => {
+            Game.showDmg('fighter-enemy', dmg);
+            Game.updateCombatBars();
+            Game.logCombat(`你射击造成 <span style="color:#ff6b6b">${dmg}</span> 伤害`);
+            if(State.combat.enemy.hp <= 0) {
+                setTimeout(() => Game.endCombat(true), 1200);
+            } else {
+                setTimeout(Game.turnEnemy, 1500);
+            }
+        }, 300);
+    },
+
+    turnEnemy: () => {
+        if(State.combat.enemy.hp <= 0) return;
+        document.getElementById('enemy-img').classList.add('atk-lunge-left');
+        setTimeout(() => document.getElementById('enemy-img').classList.remove('atk-lunge-left'), 300);
+
+        const dmg = Math.floor(State.combat.enemy.atk * (0.8 + Math.random()*0.4));
+        State.combat.player.curHp -= dmg;
+        if(State.combat.player.curHp < 0) State.combat.player.curHp = 0;
+
+        setTimeout(() => {
+            Game.showDmg('fighter-player', dmg);
+            Game.updateCombatBars();
+            Game.logCombat(`${State.combat.enemy.name} 反击造成 <span style="color:#ff6b6b">${dmg}</span> 伤害`);
+            if(State.combat.player.curHp <= 0) {
+                setTimeout(() => Game.endCombat(false), 1200);
+            } else {
+                setTimeout(Game.turnPlayer, 1500);
+            }
+        }, 300);
+    },
+
+    logCombat: (msg) => {
+        const d = document.createElement('div');
+        d.innerHTML = `> ${msg}`;
+        const box = document.getElementById('combat-log');
+        box.appendChild(d);
         box.scrollTop = box.scrollHeight;
     },
 
-    clearLog: function() {
-        document.getElementById('game-log').innerHTML = '';
+    endCombat: (win) => {
+        if(win) {
+            const loot = State.combat.enemy.atk * 800;
+            State.game.bagVal += loot;
+            document.getElementById('ui-bag').innerText = State.game.bagVal;
+            alert(`战斗胜利！\n缴获物资价值: $${loot}`);
+            UI.showScreen('screen-game');
+            UI.chat("威胁已清除。继续行动。", 'event');
+            Game.flow('AFTER');
+        } else {
+            alert("你已阵亡...");
+            // 记录战败
+            RecordSystem.add(DATA.chars[State.sel.char].name, 'loss', -State.game.currentCost);
+            location.reload();
+        }
     },
 
-    showActions: function(actions) {
-        const panel = document.getElementById('action-panel');
-        panel.innerHTML = '';
-        actions.forEach(act => {
-            const btn = document.createElement('div');
-            btn.className = 'btn-option';
-            btn.innerText = `> ${act.text}`;
-            btn.onclick = () => {
-                // 点击后清空防止重复点
-                panel.innerHTML = ''; 
-                act.cb();
-            };
-            panel.appendChild(btn);
-        });
-    },
-
-    setLoc: function(id) {
-        const map = {
-            'SPAWN_EAST': '东侧部署点', 'SPAWN_WEST': '西侧部署点',
-            'ADMIN_BUILDING': '行政楼·二层', 'VISITOR_CENTER': '游客中心',
-            'MAIN_WEST': '西楼·实验室', 'FACTORY': '废弃水泥厂',
-            'CAMPING': '野外·狙击位', 'EXTRACT': '撤离点H01'
-        };
-        document.getElementById('ui-loc-name').innerText = map[id] || id;
-    },
-
-    switchScreen: function(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+    extract: () => {
+        UI.chat("呼叫撤离...", 'event');
+        setTimeout(() => {
+            const profit = State.game.bagVal;
+            const netProfit = profit; // 净利润不减装备费(因为装备保留)，或者减去维修费? 简化起见，这里记录带出的钱
+            
+            alert(`成功撤离！\n带出收益: $${profit}`);
+            State.money += profit;
+            
+            // 记录胜利
+            RecordSystem.add(DATA.chars[State.sel.char].name, 'win', profit);
+            
+            UI.showScreen('screen-lobby');
+            UI.updateLobby();
+        }, 1500);
     }
 };
 
-// 启动
-Game.init();
-
+UI.init();
 </script>
 </body>
 </html>
