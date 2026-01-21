@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文字三角洲 V4.0：战绩与经济</title>
+    <title>文字三角洲 V5.0：全装出击</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -45,41 +45,50 @@
 
         /* --- 1. 备战大厅 --- */
         .lobby-content { padding: 20px; overflow-y: auto; padding-bottom: 90px; }
-        .card-row { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
+        .section-title { color: var(--highlight); margin: 15px 0 10px 0; font-size: 14px; border-left: 3px solid var(--highlight); padding-left: 8px; }
+        
+        .card-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: none; }
+        .card-row::-webkit-scrollbar { display: none; }
+        
         .card {
-            min-width: 120px; width: 120px;
+            min-width: 130px; width: 130px;
             background: var(--card-bg); border: 2px solid #30363d;
             border-radius: 8px; cursor: pointer; position: relative; transition: 0.2s;
+            overflow: hidden;
         }
-        .card.selected { border-color: var(--highlight); background: #1f2428; }
-        .card img { width: 100%; height: 80px; object-fit: cover; background: #333; }
-        .card-info { padding: 8px; font-size: 12px; }
+        .card.selected { border-color: var(--highlight); background: #1f2428; box-shadow: 0 0 10px rgba(88,166,255,0.2); }
+        .card img { width: 100%; height: 70px; object-fit: cover; background: #333; }
+        .card-info { padding: 10px; font-size: 12px; line-height: 1.6; }
+        .stat-badge { display: inline-block; background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px; margin-top: 4px; font-weight: bold; }
         
-        /* 战绩列表样式 */
-        .history-section { border-top: 1px solid #333; margin-top: 20px; padding-top: 20px; }
-        .history-list { display: flex; flex-direction: column; gap: 10px; }
+        /* 战绩列表 */
+        .history-section { border-top: 1px solid #333; margin-top: 25px; padding-top: 15px; }
+        .history-list { display: flex; flex-direction: column; gap: 8px; }
         .history-item {
-            background: #1c2128; padding: 12px; border-radius: 6px; font-size: 12px;
+            background: #1c2128; padding: 10px 12px; border-radius: 6px; font-size: 12px;
             display: flex; justify-content: space-between; align-items: center;
             border-left: 3px solid #555;
         }
         .history-item.win { border-left-color: var(--green); }
         .history-item.loss { border-left-color: var(--danger); }
-        .h-main { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
-        .h-sub { color: #888; }
-        .h-val { font-weight: bold; font-family: monospace; font-size: 14px; }
 
+        /* 底部结算栏 */
         #checkout-bar {
             position: absolute; bottom: 0; width: 100%; height: 70px;
-            background: #111; border-top: 1px solid #333;
+            background: #0d1117; border-top: 1px solid #30363d;
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 20px; box-sizing: border-box; z-index: 50;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
         }
+        .bill-display { display: flex; flex-direction: column; }
+        .bill-label { font-size: 12px; color: #888; }
+        .bill-total { font-size: 18px; color: var(--gold); font-weight: bold; font-family: monospace; }
+        
         .btn-main {
             background: var(--highlight); color: #000; border: none;
-            padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer;
+            padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer;
         }
-        .btn-main:active { opacity: 0.8; }
+        .btn-main:active { transform: scale(0.95); }
 
         /* --- 弹窗通用 --- */
         .modal-overlay {
@@ -88,19 +97,19 @@
             display: none; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        /* 确认弹窗样式 */
+        /* 确认弹窗 */
         .confirm-box {
-            background: #21262d; width: 80%; max-width: 320px;
-            border-radius: 12px; border: 1px solid #444; padding: 20px;
+            background: #21262d; width: 85%; max-width: 320px;
+            border-radius: 12px; border: 1px solid #444; padding: 25px;
             animation: popIn 0.3s;
         }
         .conf-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
-        .conf-total { border-top: 1px solid #444; padding-top: 12px; font-weight: bold; color: var(--gold); }
-        .conf-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-cancel { background: transparent; border: 1px solid #444; color: #aaa; flex: 1; padding: 10px; border-radius: 6px; }
-        .btn-confirm { background: var(--highlight); color: #000; flex: 1; padding: 10px; border-radius: 6px; font-weight: bold; border: none; }
+        .conf-total { border-top: 1px solid #444; padding-top: 12px; font-weight: bold; color: var(--gold); font-size: 16px; margin-top: 5px; }
+        .conf-actions { display: flex; gap: 10px; margin-top: 25px; }
+        .btn-cancel { background: transparent; border: 1px solid #444; color: #aaa; flex: 1; padding: 12px; border-radius: 6px; }
+        .btn-confirm { background: var(--highlight); color: #000; flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; border: none; }
 
-        /* --- 游戏对话流 --- */
+        /* --- 游戏界面 --- */
         #game-location-header { background:#111; padding:8px; text-align:center; font-size:12px; border-bottom:1px solid #333; color: #888; }
         #game-log-container { flex: 1; padding: 15px; overflow-y: auto; padding-bottom: 30px; display: flex; flex-direction: column; gap: 12px; }
         .chat-bubble {
@@ -118,7 +127,7 @@
         
         @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         /* --- 战斗界面 --- */
         #screen-combat {
@@ -181,35 +190,35 @@
         <div>🎒 <span id="ui-bag">0</span></div>
     </div>
 
-    <!-- 1. 备战 -->
+    <!-- 1. 备战大厅 -->
     <div id="screen-lobby" class="screen active">
         <div class="lobby-content">
-            <h4 style="color:var(--highlight); margin:10px 0;">选择干员</h4>
+            
+            <div class="section-title">特勤干员</div>
             <div class="card-row" id="char-list"></div>
             
-            <h4 style="color:var(--highlight); margin:10px 0;">配备武器</h4>
+            <div class="section-title">主武器采购</div>
             <div class="card-row" id="weapon-list"></div>
 
-            <h4 style="color:var(--highlight); margin:10px 0;">防护等级</h4>
-            <div style="background:#21262d; padding:15px; border-radius:8px; border:1px solid #333;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <span id="armor-name">无防具</span>
-                    <span id="cost-preview" style="color:var(--gold)">$0</span>
-                </div>
-                <input type="range" id="armor-slider" min="0" max="3" value="0" style="width:100%; accent-color:var(--highlight)">
-            </div>
+            <div class="section-title">防具选择</div>
+            <!-- 修改：移除滑动条，改为卡片列表 -->
+            <div class="card-row" id="armor-list"></div>
 
             <!-- 作战记录 -->
             <div class="history-section">
-                <h4 style="color:#aaa; margin-bottom:15px; border-left:3px solid #555; padding-left:10px;">行动记录</h4>
+                <div class="section-title" style="border-color:#555; color:#aaa;">近期战报</div>
                 <div class="history-list" id="history-container">
                     <div style="text-align:center; color:#555; padding:20px;">暂无数据</div>
                 </div>
             </div>
         </div>
+        
+        <!-- 底部实时账单 -->
         <div id="checkout-bar">
-            <span style="color:#666; font-size:12px">准备行动?</span>
-            <!-- 触发确认弹窗，而不是直接开始 -->
+            <div class="bill-display">
+                <span class="bill-label">预计花费</span>
+                <span class="bill-total" id="ui-total-cost">$0</span>
+            </div>
             <button class="btn-main" onclick="UI.showConfirmModal()">开始行动</button>
         </div>
     </div>
@@ -267,7 +276,7 @@
                 <span id="conf-balance" style="font-family:monospace">$0</span>
             </div>
             <div class="conf-row">
-                <span style="color:#888">装备花费:</span>
+                <span style="color:#888">本次投入:</span>
                 <span id="conf-cost" style="color:var(--danger); font-family:monospace">-$0</span>
             </div>
             <div class="conf-row conf-total">
@@ -290,16 +299,18 @@ const DATA = {
         { id: 1, name: '蜂医', role: '支援', stats: {atk: 8, hp: 180}, img: 'https://placehold.co/100/222/FFF?text=蜂医' },
         { id: 2, name: '红狼', role: '侦查', stats: {atk: 10, hp: 120}, img: 'https://placehold.co/100/222/FFF?text=红狼' }
     ],
+    // 增加 atk 描述字段
     weapons: [
         { id: 0, name: '战术匕首', cost: 0, atk: 10, img: 'https://placehold.co/100/333/FFF?text=匕首' },
         { id: 1, name: 'MP5冲锋枪', cost: 20000, atk: 25, img: 'https://placehold.co/100/333/FFF?text=MP5' },
         { id: 2, name: 'M4A1步枪', cost: 50000, atk: 45, img: 'https://placehold.co/100/333/FFF?text=M4A1' }
     ],
+    // 修改为数组对象，支持图片和数值展示
     armor: [
-        { name: '无防具', cost: 0, hp: 0 },
-        { name: '一级甲', cost: 20000, hp: 50 },
-        { name: '三级甲', cost: 50000, hp: 100 },
-        { name: '五级甲', cost: 100000, hp: 200 }
+        { id: 0, name: '无防具', cost: 0, hp: 0, img: 'https://placehold.co/100/222/FFF?text=无' },
+        { id: 1, name: '一级轻甲', cost: 20000, hp: 50, img: 'https://placehold.co/100/444/FFF?text=1级甲' },
+        { id: 2, name: '三级战术甲', cost: 50000, hp: 100, img: 'https://placehold.co/100/555/FFF?text=3级甲' },
+        { id: 3, name: '五级重甲', cost: 100000, hp: 200, img: 'https://placehold.co/100/666/FFF?text=5级甲' }
     ],
     enemies: [
         { name: '游荡者', hp: 80, atk: 12, img: 'https://placehold.co/100/511/FFF?text=AI' },
@@ -321,19 +332,14 @@ const State = {
     combat: null
 };
 
-// --- 作战记录系统 (Local Storage) ---
+// --- Record System ---
 const RecordSystem = {
     key: 'delta_game_records',
     add: (charName, result, profit) => {
-        const rec = {
-            char: charName,
-            res: result, // 'win' or 'loss'
-            profit: profit,
-            time: new Date().toLocaleTimeString()
-        };
+        const rec = { char: charName, res: result, profit: profit, time: new Date().toLocaleTimeString() };
         const list = RecordSystem.get();
-        list.unshift(rec); // 新的在前面
-        if(list.length > 10) list.pop(); // 只留10条
+        list.unshift(rec); 
+        if(list.length > 10) list.pop(); 
         localStorage.setItem(RecordSystem.key, JSON.stringify(list));
         UI.renderHistory();
     },
@@ -343,27 +349,62 @@ const RecordSystem = {
     }
 };
 
-// --- UI 控制 ---
+// --- UI Logic ---
 const UI = {
     init: () => {
+        // Render Chars
         document.getElementById('char-list').innerHTML = DATA.chars.map((c,i) => `
-            <div class="card ${i===0?'selected':''}" onclick="UI.selChar(${i}, this)">
+            <div class="card ${i===0?'selected':''}" onclick="UI.sel('char', ${i}, this)">
                 <img src="${c.img}">
-                <div class="card-info"><b>${c.name}</b><br>攻:${c.stats.atk} 血:${c.stats.hp}</div>
+                <div class="card-info">
+                    <b>${c.name}</b><br>
+                    <span style="color:#aaa">${c.role}</span>
+                </div>
             </div>
         `).join('');
+        
+        // Render Weapons (With Stats)
         document.getElementById('weapon-list').innerHTML = DATA.weapons.map((w,i) => `
-            <div class="card ${i===0?'selected':''}" onclick="UI.selWeap(${i}, this)">
+            <div class="card ${i===0?'selected':''}" onclick="UI.sel('weap', ${i}, this)">
                 <img src="${w.img}">
-                <div class="card-info"><b>${w.name}</b><br>$${w.cost}</div>
+                <div class="card-info">
+                    <b>${w.name}</b><br>
+                    <span style="color:var(--gold)">$${w.cost}</span><br>
+                    <span class="stat-badge" style="color:var(--danger)">⚔️ +${w.atk}</span>
+                </div>
             </div>
         `).join('');
-        document.getElementById('armor-slider').oninput = function() {
-            State.sel.armor = parseInt(this.value);
-            UI.updateLobby();
-        };
+
+        // Render Armor (New Card List)
+        document.getElementById('armor-list').innerHTML = DATA.armor.map((a,i) => `
+            <div class="card ${i===0?'selected':''}" onclick="UI.sel('armor', ${i}, this)">
+                <img src="${a.img}">
+                <div class="card-info">
+                    <b>${a.name}</b><br>
+                    <span style="color:var(--gold)">$${a.cost}</span><br>
+                    <span class="stat-badge" style="color:var(--highlight)">🛡️ +${a.hp}</span>
+                </div>
+            </div>
+        `).join('');
+
         UI.updateLobby();
-        UI.renderHistory(); // 加载历史
+        UI.renderHistory();
+    },
+
+    sel: (type, idx, el) => {
+        State.sel[type] = idx;
+        // Highlight logic
+        el.parentElement.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected');
+        UI.updateLobby();
+    },
+
+    updateLobby: () => {
+        const cost = DATA.weapons[State.sel.weap].cost + DATA.armor[State.sel.armor].cost;
+        document.getElementById('ui-money').innerText = State.money;
+        
+        // 更新底部实时花费
+        document.getElementById('ui-total-cost').innerText = `$${cost}`;
     },
 
     renderHistory: () => {
@@ -376,31 +417,17 @@ const UI = {
         con.innerHTML = list.map(r => `
             <div class="history-item ${r.res}">
                 <div>
-                    <div class="h-main">${r.res==='win'?'撤离成功':'行动阵亡'} <span class="h-sub">(${r.char})</span></div>
-                    <div class="h-sub">${r.time}</div>
+                    <div>${r.res==='win'?'撤离成功':'行动阵亡'} <span style="color:#666">(${r.char})</span></div>
+                    <div style="color:#666">${r.time}</div>
                 </div>
-                <div class="h-val" style="color:${r.profit>=0?'#e3b341':'#ff6b6b'}">
+                <div style="font-weight:bold; color:${r.profit>=0?'var(--gold)':'var(--danger)'}">
                     ${r.profit>=0?'+':''}${r.profit}
                 </div>
             </div>
         `).join('');
     },
 
-    selChar: (i, el) => { State.sel.char = i; UI.hl(el); UI.updateLobby(); },
-    selWeap: (i, el) => { State.sel.weap = i; UI.hl(el); UI.updateLobby(); },
-    hl: (el) => {
-        el.parentElement.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
-        el.classList.add('selected');
-    },
-    updateLobby: () => {
-        const armor = DATA.armor[State.sel.armor];
-        const cost = DATA.weapons[State.sel.weap].cost + armor.cost;
-        document.getElementById('ui-money').innerText = State.money;
-        document.getElementById('armor-name').innerText = armor.name;
-        document.getElementById('cost-preview').innerText = `$${cost}`;
-    },
-    
-    // 弹窗逻辑
+    // 确认弹窗
     showConfirmModal: () => {
         const cost = DATA.weapons[State.sel.weap].cost + DATA.armor[State.sel.armor].cost;
         if(State.money < cost) return alert("资金不足！");
@@ -439,24 +466,25 @@ const UI = {
     }
 };
 
-// --- 游戏逻辑 ---
+// --- Logic ---
 const Game = {
     finalStart: () => {
         document.getElementById('modal-confirm').style.display = 'none';
         const cost = DATA.weapons[State.sel.weap].cost + DATA.armor[State.sel.armor].cost;
         State.money -= cost;
-        State.game.currentCost = cost; // 记录成本用于计算净利润
+        State.game.currentCost = cost;
         
         const c = DATA.chars[State.sel.char];
         const w = DATA.weapons[State.sel.weap];
         const a = DATA.armor[State.sel.armor];
+        
         State.game = {
             ...State.game,
             curHp: c.stats.hp + a.hp,
             maxHp: c.stats.hp + a.hp,
             atk: c.stats.atk + w.atk,
             bagVal: 0, bag: [],
-            currentCost: cost // 记录本局投入
+            currentCost: cost
         };
         
         UI.showScreen('screen-game');
@@ -643,7 +671,6 @@ const Game = {
             Game.flow('AFTER');
         } else {
             alert("你已阵亡...");
-            // 记录战败
             RecordSystem.add(DATA.chars[State.sel.char].name, 'loss', -State.game.currentCost);
             location.reload();
         }
@@ -653,14 +680,9 @@ const Game = {
         UI.chat("呼叫撤离...", 'event');
         setTimeout(() => {
             const profit = State.game.bagVal;
-            const netProfit = profit; // 净利润不减装备费(因为装备保留)，或者减去维修费? 简化起见，这里记录带出的钱
-            
             alert(`成功撤离！\n带出收益: $${profit}`);
             State.money += profit;
-            
-            // 记录胜利
             RecordSystem.add(DATA.chars[State.sel.char].name, 'win', profit);
-            
             UI.showScreen('screen-lobby');
             UI.updateLobby();
         }, 1500);
