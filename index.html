@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文字三角洲 V7.1：猛攻哥来袭</title>
+    <title>文字三角洲 V7.2：满改M7</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -282,7 +282,9 @@ const DATA = {
     weapons: [
         { id: 0, name: '战术匕首', cost: 0, atk: 10, img: 'https://placehold.co/100/333/FFF?text=匕首' },
         { id: 1, name: 'MP5冲锋枪', cost: 2*W, atk: 25, img: 'https://placehold.co/100/333/FFF?text=MP5' },
-        { id: 2, name: 'M4A1步枪', cost: 5*W, atk: 45, img: 'https://placehold.co/100/333/FFF?text=M4A1' }
+        { id: 2, name: 'M4A1步枪', cost: 5*W, atk: 45, img: 'https://placehold.co/100/333/FFF?text=M4A1' },
+        // 新增满改M7：高价值，高伤害
+        { id: 3, name: '满改M7', cost: 100*W, atk: 80, img: 'https://placehold.co/100/333/FFF?text=满改M7' }
     ],
     armor: [
         { id: 0, name: '无防具', cost: 0, hp: 0, img: 'https://placehold.co/100/222/FFF?text=无' },
@@ -294,7 +296,6 @@ const DATA = {
         { name: '游荡者', hp: 80, atk: 12, img: 'https://placehold.co/100/511/FFF?text=AI' },
         { name: '全装特遣', hp: 160, atk: 30, img: 'https://placehold.co/100/811/FFF?text=Enemy' },
         { name: '首领阿萨拉', hp: 400, atk: 45, img: 'https://placehold.co/100/800/FFF?text=BOSS' },
-        // 新增敌人：全装猛攻哥，血量160，基础攻击75
         { name: '全装猛攻哥', hp: 160, atk: 75, img: 'https://placehold.co/100/8b0000/FFF?text=猛攻哥' }
     ],
     lootTable: [
@@ -480,7 +481,6 @@ const Game = {
             document.getElementById('ui-loc').innerText = "行政楼";
             UI.chat("行政楼内部光线昏暗...", 'event');
             if(Math.random() < 0.7) { 
-                // 遇敌逻辑更新：15%概率遭遇猛攻哥
                 if(Math.random() < 0.15) {
                     UI.chat("<b style='color:var(--dark-red)'>脚步声沉重...全装猛攻哥出现！</b>", 'system');
                     setTimeout(() => Game.initCombat('rusher'), 1000);
@@ -520,24 +520,20 @@ const Game = {
         document.getElementById('loot-result').style.display = 'none';
         
         let pool = DATA.lootTable;
-        
-        // --- 核心爆率逻辑 ---
         if (bias === 'low' || bias === 'scavenger') {
             if(Math.random() > 0.001) pool = pool.filter(i => i.tier < 3);
         }
         else if (bias === 'elite') {
-            // 普通全装：正常概率
         }
         else if (bias === 'boss' || bias === 'high') {
             pool = pool.filter(i => i.tier >= 2);
         }
         else if (bias === 'rusher') {
-            // 猛攻哥专属：绝不掉紫，80%掉红，20%掉金
             pool = pool.filter(i => i.tier >= 2); 
             if(Math.random() < 0.8) {
-                pool = pool.filter(i => i.tier === 3); // 强制红
+                pool = pool.filter(i => i.tier === 3);
             } else {
-                pool = pool.filter(i => i.tier === 2); // 强制金
+                pool = pool.filter(i => i.tier === 2);
             }
         }
 
@@ -604,10 +600,10 @@ const Game = {
 
     initCombat: (diff) => {
         UI.showScreen('screen-combat');
-        let enemy = DATA.enemies[0]; // default: scavenger
-        if(diff === 'hard') enemy = DATA.enemies[1]; // elite
-        if(diff === 'boss') enemy = DATA.enemies[2]; // boss
-        if(diff === 'rusher') enemy = DATA.enemies[3]; // 猛攻哥
+        let enemy = DATA.enemies[0];
+        if(diff === 'hard') enemy = DATA.enemies[1];
+        if(diff === 'boss') enemy = DATA.enemies[2];
+        if(diff === 'rusher') enemy = DATA.enemies[3];
 
         State.combat = { round: 0, enemy: { ...enemy, maxHp: enemy.hp }, player: State.game };
         document.getElementById('combat-log').innerHTML = '<div style="color:#aaa">>>> 战斗系统启动 <<<</div>';
@@ -690,7 +686,7 @@ const Game = {
             let lootBias = 'scavenger'; 
             if(enemyName === '全装特遣') lootBias = 'elite';
             if(enemyName === '首领阿萨拉') lootBias = 'boss';
-            if(enemyName === '全装猛攻哥') lootBias = 'rusher'; // 设定猛攻哥专属掉落
+            if(enemyName === '全装猛攻哥') lootBias = 'rusher'; 
 
             UI.ask([
                 { txt: "搜索背包", cb: () => Game.loot(lootBias) }, 
