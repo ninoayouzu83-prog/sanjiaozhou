@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文字三角洲 V5.0：全装出击</title>
+    <title>文字三角洲 V7.1：猛攻哥来袭</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -11,22 +11,19 @@
             --card-bg: #21262d;
             --text-main: #e6edf3;
             --highlight: #58a6ff;
-            --danger: #ff6b6b;
-            --gold: #e3b341;
+            --danger: #ff4444; 
+            --gold: #ffd700;
+            --purple: #d2a8ff;
             --green: #3fb950;
+            --dark-red: #8b0000;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
             background-color: var(--bg-color);
             color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            user-select: none;
+            margin: 0; padding: 0; height: 100vh;
+            display: flex; flex-direction: column; overflow: hidden; user-select: none;
         }
 
         /* 顶部状态栏 */
@@ -37,41 +34,41 @@
         }
 
         /* 屏幕容器 */
-        .screen {
-            display: none; flex-direction: column; flex: 1;
-            position: relative; background: var(--bg-color); overflow: hidden;
-        }
+        .screen { display: none; flex-direction: column; flex: 1; position: relative; background: var(--bg-color); overflow: hidden; }
         .screen.active { display: flex; }
 
         /* --- 1. 备战大厅 --- */
         .lobby-content { padding: 20px; overflow-y: auto; padding-bottom: 90px; }
-        .section-title { color: var(--highlight); margin: 15px 0 10px 0; font-size: 14px; border-left: 3px solid var(--highlight); padding-left: 8px; }
+        .section-title { color: var(--highlight); margin: 15px 0 10px 0; font-size: 14px; border-left: 3px solid var(--highlight); padding-left: 8px; font-weight: bold; }
         
+        .exhibition-entry {
+            background: linear-gradient(135deg, #3a1111, #1a0505);
+            border: 1px solid var(--danger);
+            border-radius: 8px; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 68, 68, 0.2);
+        }
+        .exhibition-entry:active { opacity: 0.8; }
+
         .card-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: none; }
         .card-row::-webkit-scrollbar { display: none; }
         
         .card {
             min-width: 130px; width: 130px;
             background: var(--card-bg); border: 2px solid #30363d;
-            border-radius: 8px; cursor: pointer; position: relative; transition: 0.2s;
-            overflow: hidden;
+            border-radius: 8px; cursor: pointer; position: relative; transition: 0.2s; overflow: hidden;
         }
         .card.selected { border-color: var(--highlight); background: #1f2428; box-shadow: 0 0 10px rgba(88,166,255,0.2); }
         .card img { width: 100%; height: 70px; object-fit: cover; background: #333; }
         .card-info { padding: 10px; font-size: 12px; line-height: 1.6; }
-        .stat-badge { display: inline-block; background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px; margin-top: 4px; font-weight: bold; }
         
-        /* 战绩列表 */
-        .history-section { border-top: 1px solid #333; margin-top: 25px; padding-top: 15px; }
-        .history-list { display: flex; flex-direction: column; gap: 8px; }
-        .history-item {
-            background: #1c2128; padding: 10px 12px; border-radius: 6px; font-size: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-left: 3px solid #555;
+        .stat-badge { 
+            display: inline-block; background: rgba(0,0,0,0.3); 
+            padding: 2px 6px; border-radius: 4px; margin-top: 4px; margin-right: 4px;
+            font-weight: bold; font-family: monospace; font-size: 11px;
         }
-        .history-item.win { border-left-color: var(--green); }
-        .history-item.loss { border-left-color: var(--danger); }
-
+        
         /* 底部结算栏 */
         #checkout-bar {
             position: absolute; bottom: 0; width: 100%; height: 70px;
@@ -81,105 +78,93 @@
             box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
         }
         .bill-display { display: flex; flex-direction: column; }
-        .bill-label { font-size: 12px; color: #888; }
-        .bill-total { font-size: 18px; color: var(--gold); font-weight: bold; font-family: monospace; }
-        
-        .btn-main {
-            background: var(--highlight); color: #000; border: none;
-            padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer;
-        }
-        .btn-main:active { transform: scale(0.95); }
+        .bill-total { font-size: 16px; color: var(--gold); font-weight: bold; font-family: monospace; }
+        .btn-main { background: var(--highlight); color: #000; border: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; }
+
+        /* --- 展览馆样式 --- */
+        #modal-exhibition { background: #110505; align-items: flex-start; padding-top: 40px; overflow-y: auto; }
+        .exhibition-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; width: 100%; box-sizing: border-box; }
+        .museum-card { background: #1a0505; border: 1px solid #331111; border-radius: 6px; text-align: center; padding: 10px 5px; opacity: 0.4; filter: grayscale(1); transition: 0.3s; }
+        .museum-card.unlocked { opacity: 1; filter: grayscale(0); border-color: var(--danger); background: linear-gradient(180deg, #2a0a0a, #441111); transform: scale(1.02); box-shadow: 0 0 8px var(--danger); }
+        .museum-img { width: 100%; height: 50px; object-fit: contain; margin-bottom: 5px; }
+        .museum-name { font-size: 10px; color: #aaa; margin-bottom: 2px; }
+        .museum-count { font-size: 10px; color: var(--gold); font-weight: bold; }
 
         /* --- 弹窗通用 --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 200;
+            background: rgba(0,0,0,0.9); z-index: 200;
             display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .btn-close-modal {
+            position: absolute; top: 20px; right: 20px;
+            background: #333; color: white; border: none; padding: 8px 15px; border-radius: 20px;
+            cursor: pointer; z-index: 210;
         }
 
         /* 确认弹窗 */
-        .confirm-box {
-            background: #21262d; width: 85%; max-width: 320px;
-            border-radius: 12px; border: 1px solid #444; padding: 25px;
-            animation: popIn 0.3s;
-        }
+        .confirm-box { background: #21262d; width: 85%; max-width: 320px; border-radius: 12px; border: 1px solid #444; padding: 25px; animation: popIn 0.3s; }
         .conf-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
-        .conf-total { border-top: 1px solid #444; padding-top: 12px; font-weight: bold; color: var(--gold); font-size: 16px; margin-top: 5px; }
-        .conf-actions { display: flex; gap: 10px; margin-top: 25px; }
-        .btn-cancel { background: transparent; border: 1px solid #444; color: #aaa; flex: 1; padding: 12px; border-radius: 6px; }
-        .btn-confirm { background: var(--highlight); color: #000; flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; border: none; }
-
-        /* --- 游戏界面 --- */
-        #game-location-header { background:#111; padding:8px; text-align:center; font-size:12px; border-bottom:1px solid #333; color: #888; }
+        
+        /* --- 游戏内 --- */
         #game-log-container { flex: 1; padding: 15px; overflow-y: auto; padding-bottom: 30px; display: flex; flex-direction: column; gap: 12px; }
         .chat-bubble {
-            background: #1f2428; padding: 12px; border-radius: 8px 8px 8px 0;
-            border-left: 3px solid var(--highlight); max-width: 85%;
-            font-size: 14px; line-height: 1.5; animation: slideIn 0.3s ease-out;
+            background: #1f2428; padding: 12px; border-radius: 8px 8px 8px 0; border-left: 3px solid var(--highlight); max-width: 85%; font-size: 14px; line-height: 1.5; animation: slideIn 0.3s;
         }
         .chat-bubble.event { border-color: var(--gold); background: #221f10; }
         .chat-bubble.system { background: transparent; border: none; color: #666; font-size: 12px; text-align: center; margin: 0 auto; }
         .choice-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; animation: fadeIn 0.5s; }
-        .chat-btn {
-            background: rgba(88,166,255,0.1); border: 1px solid var(--highlight); color: var(--highlight);
-            padding: 8px 15px; border-radius: 20px; font-size: 13px; cursor: pointer;
+        .chat-btn { background: rgba(88,166,255,0.1); border: 1px solid var(--highlight); color: var(--highlight); padding: 8px 15px; border-radius: 20px; font-size: 13px; cursor: pointer; }
+        
+        /* 战斗 */
+        #screen-combat { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.85)), url('https://p6.music.126.net/obj/wonDlsKUwrLClGjCm8Kx/77918735759/1a75/b634/30fd/7b268bc5aca0d86a8f7e5ced4f735e35.png'); background-size: cover; background-position: center; }
+        .combat-stage { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 30px; }
+        .fighter-wrapper { display: flex; align-items: center; gap: 15px; position: relative; }
+        .fighter-wrapper.enemy { flex-direction: row-reverse; align-self: flex-end; }
+        
+        .fighter-avatar { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #555; background: #222; box-shadow: 0 0 15px rgba(0,0,0,0.8); z-index: 2; }
+        .fighter-wrapper.enemy .fighter-avatar { border-color: var(--danger); }
+        .fighter-wrapper.player .fighter-avatar { border-color: var(--highlight); }
+        
+        .fighter-info { display: flex; flex-direction: column; min-width: 100px; text-shadow:0 0 2px #000; }
+        .fighter-wrapper.enemy .fighter-info { text-align: right; align-items: flex-end; }
+        
+        .hp-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.5); border:1px solid #444; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+        .hp-bar-fill { height: 100%; background: var(--green); transition: width 0.3s; }
+        .fighter-wrapper.enemy .hp-bar-fill { background: var(--danger); }
+        
+        .combat-log-area { height: 140px; background: rgba(0,0,0,0.7); border-top: 1px solid #333; padding: 15px; font-family: monospace; font-size: 13px; color: #ccc; overflow-y: auto; }
+        
+        /* 动画 */
+        .dmg-popup { 
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%); 
+            color: #ff3333; font-size: 24px; font-weight: 900; text-shadow: 1px 1px 0 #000;
+            animation: floatUp 0.8s ease-out forwards; z-index: 10; 
         }
+        @keyframes floatUp { 0% { opacity: 1; top: -10px; transform: translateX(-50%) scale(0.8); } 50% { transform: translateX(-50%) scale(1.5); } 100% { opacity: 0; top: -60px; transform: translateX(-50%) scale(1); } }
+        
+        .shake-anim { animation: shake 0.4s both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+        .hit-flash { animation: flashRed 0.3s; }
+        @keyframes flashRed { 50% { filter: brightness(3) sepia(1) hue-rotate(-50deg) saturate(5); } }
+        .atk-lunge-right { animation: lungeRight 0.3s; }
+        @keyframes lungeRight { 50% { transform: translateX(30px); } }
+        .atk-lunge-left { animation: lungeLeft 0.3s; }
+        @keyframes lungeLeft { 50% { transform: translateX(-30px); } }
         
         @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* --- 战斗界面 --- */
-        #screen-combat {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.85)),
-                        url('https://p6.music.126.net/obj/wonDlsKUwrLClGjCm8Kx/77918735759/1a75/b634/30fd/7b268bc5aca0d86a8f7e5ced4f735e35.png');
-            background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 100;
-        }
-        .combat-stage { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 30px; position: relative; }
-        .fighter-wrapper { display: flex; align-items: center; gap: 15px; position: relative; }
-        .fighter-wrapper.enemy { flex-direction: row-reverse; align-self: flex-end; }
-        .fighter-avatar {
-            width: 70px; height: 70px; border-radius: 50%; border: 3px solid #555;
-            background: #222; object-fit: cover; box-shadow: 0 0 15px rgba(0,0,0,0.8);
-            position: relative; z-index: 2;
-        }
-        .fighter-wrapper.enemy .fighter-avatar { border-color: var(--danger); }
-        .fighter-wrapper.player .fighter-avatar { border-color: var(--highlight); }
-        .fighter-info { display: flex; flex-direction: column; min-width: 100px; }
-        .fighter-wrapper.enemy .fighter-info { text-align: right; align-items: flex-end; }
-        .hp-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.5); border:1px solid #444; border-radius: 4px; margin-top: 5px; overflow: hidden; }
-        .hp-bar-fill { height: 100%; background: var(--green); transition: width 0.3s; }
-        .fighter-wrapper.enemy .hp-bar-fill { background: var(--danger); }
-        .combat-log-area {
-            height: 140px; background: rgba(0,0,0,0.7); border-top: 1px solid #333;
-            padding: 15px; font-family: monospace; font-size: 13px; color: #ccc;
-            overflow-y: auto; flex-shrink: 0; backdrop-filter: blur(5px);
-        }
-        /* 战斗动效 */
-        .dmg-popup {
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            color: #ff3333; font-size: 24px; font-weight: 900;
-            text-shadow: 2px 2px 0 #000; pointer-events: none; z-index: 10;
-            animation: floatUp 1s ease-out forwards;
-        }
-        @keyframes floatUp { 0% { opacity: 1; top: 0; transform: translateX(-50%) scale(0.5); } 50% { transform: translateX(-50%) scale(1.5); } 100% { opacity: 0; top: -50px; transform: translateX(-50%) scale(1); } }
-        .shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
-        .hit-flash { animation: flashRed 0.3s; }
-        @keyframes flashRed { 0% { filter: brightness(1); } 50% { filter: brightness(3) sepia(1) hue-rotate(-50deg) saturate(5); } 100% { filter: brightness(1); } }
-        .atk-lunge-right { animation: lungeRight 0.3s; }
-        @keyframes lungeRight { 0% { transform: translateX(0); } 50% { transform: translateX(30px); } 100% { transform: translateX(0); } }
-        .atk-lunge-left { animation: lungeLeft 0.3s; }
-        @keyframes lungeLeft { 0% { transform: translateX(0); } 50% { transform: translateX(-30px); } 100% { transform: translateX(0); } }
-
-        /* --- 搜刮弹窗 --- */
+        /* 搜刮动画 */
         .magnify-glass { font-size: 60px; animation: scanCircle 1.2s linear infinite; margin-bottom: 20px; }
         @keyframes scanCircle { from { transform: rotate(0deg) translateX(20px) rotate(0deg); } to { transform: rotate(360deg) translateX(20px) rotate(-360deg); } }
+        
         .loot-card {
             display: none; background: #21262d; padding: 25px; border-radius: 12px;
             text-align: center; border: 2px solid #444; width: 220px; animation: popIn 0.4s;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-
     </style>
 </head>
 <body>
@@ -193,7 +178,14 @@
     <!-- 1. 备战大厅 -->
     <div id="screen-lobby" class="screen active">
         <div class="lobby-content">
-            
+            <div class="exhibition-entry" onclick="UI.showExhibition()">
+                <div>
+                    <div style="font-weight:bold; color:var(--danger); font-size:16px;">🏆 大红展览馆</div>
+                    <div style="font-size:10px; color:#aaa; margin-top:4px;">查看撤离带出的顶级藏品</div>
+                </div>
+                <div style="font-size:24px;">🏛️</div>
+            </div>
+
             <div class="section-title">特勤干员</div>
             <div class="card-row" id="char-list"></div>
             
@@ -201,22 +193,11 @@
             <div class="card-row" id="weapon-list"></div>
 
             <div class="section-title">防具选择</div>
-            <!-- 修改：移除滑动条，改为卡片列表 -->
             <div class="card-row" id="armor-list"></div>
-
-            <!-- 作战记录 -->
-            <div class="history-section">
-                <div class="section-title" style="border-color:#555; color:#aaa;">近期战报</div>
-                <div class="history-list" id="history-container">
-                    <div style="text-align:center; color:#555; padding:20px;">暂无数据</div>
-                </div>
-            </div>
         </div>
-        
-        <!-- 底部实时账单 -->
         <div id="checkout-bar">
             <div class="bill-display">
-                <span class="bill-label">预计花费</span>
+                <span style="font-size:10px; color:#666;">预计花费</span>
                 <span class="bill-total" id="ui-total-cost">$0</span>
             </div>
             <button class="btn-main" onclick="UI.showConfirmModal()">开始行动</button>
@@ -237,7 +218,7 @@
                 <div class="fighter-info">
                     <div id="enemy-name" style="font-weight:bold; color:var(--danger)">敌人</div>
                     <div class="hp-bar-bg"><div class="hp-bar-fill" id="enemy-hp-bar" style="width:100%"></div></div>
-                    <div id="enemy-hp-text" style="font-size:10px; color:#fff; text-shadow:0 0 2px #000">100/100</div>
+                    <div id="enemy-hp-text" style="font-size:10px; color:#fff">100/100</div>
                 </div>
             </div>
             <div class="fighter-wrapper player" id="fighter-player">
@@ -245,7 +226,7 @@
                 <div class="fighter-info">
                     <div id="player-name" style="font-weight:bold; color:var(--highlight)">我方</div>
                     <div class="hp-bar-bg"><div class="hp-bar-fill" id="player-hp-bar" style="width:100%"></div></div>
-                    <div id="player-hp-text" style="font-size:10px; color:#fff; text-shadow:0 0 2px #000">100/100</div>
+                    <div id="player-hp-text" style="font-size:10px; color:#fff">100/100</div>
                 </div>
             </div>
         </div>
@@ -259,6 +240,7 @@
             <div style="color:#aaa; margin-top:10px;">正在搜索物资...</div>
         </div>
         <div id="loot-result" class="loot-card">
+            <div id="loot-shine" style="font-size:12px; margin-bottom:5px; font-weight:bold;">获得物品</div>
             <img id="loot-item-img" style="width:80px; height:80px; object-fit:contain; margin-bottom:10px;" src="">
             <div id="loot-item-name" style="font-size:16px; font-weight:bold; margin-bottom:5px; color:#fff">物品名</div>
             <div id="loot-item-val" style="color:var(--gold); margin-bottom:15px; font-weight:bold">$0</div>
@@ -266,134 +248,136 @@
         </div>
     </div>
 
+    <!-- 弹窗：大红展览馆 -->
+    <div id="modal-exhibition" class="modal-overlay">
+        <button class="btn-close-modal" onclick="document.getElementById('modal-exhibition').style.display='none'">关闭 X</button>
+        <h3 style="color:var(--danger); border-bottom:1px solid #441111; padding-bottom:10px; width:90%; text-align:center;">🏆 大红展览馆</h3>
+        <div class="exhibition-grid" id="museum-grid"></div>
+    </div>
+
     <!-- 弹窗：出击确认 -->
     <div id="modal-confirm" class="modal-overlay">
         <div class="confirm-box">
             <h3 style="margin-top:0; color:var(--text-main); text-align:center;">行动确认</h3>
-            
-            <div class="conf-row">
-                <span style="color:#888">当前资金:</span>
-                <span id="conf-balance" style="font-family:monospace">$0</span>
+            <div class="conf-row"><span style="color:#888">当前资金:</span><span id="conf-balance" style="font-family:monospace">$0</span></div>
+            <div class="conf-row"><span style="color:#888">本次投入:</span><span id="conf-cost" style="color:var(--danger); font-family:monospace">-$0</span></div>
+            <div class="conf-row" style="border-top:1px solid #444; padding-top:10px; font-weight:bold; color:var(--gold);">
+                <span>预计剩余:</span><span id="conf-remain" style="font-family:monospace">$0</span>
             </div>
-            <div class="conf-row">
-                <span style="color:#888">本次投入:</span>
-                <span id="conf-cost" style="color:var(--danger); font-family:monospace">-$0</span>
-            </div>
-            <div class="conf-row conf-total">
-                <span>预计剩余:</span>
-                <span id="conf-remain" style="font-family:monospace">$0</span>
-            </div>
-
-            <div class="conf-actions">
-                <button class="btn-cancel" onclick="document.getElementById('modal-confirm').style.display='none'">取消</button>
-                <button class="btn-confirm" onclick="Game.finalStart()">确认支付</button>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button style="flex:1; background:transparent; border:1px solid #444; color:#aaa; padding:10px; border-radius:6px;" onclick="document.getElementById('modal-confirm').style.display='none'">取消</button>
+                <button class="btn-main" style="flex:1;" onclick="Game.finalStart()">确认支付</button>
             </div>
         </div>
     </div>
 
 <script>
-// --- 数据配置 ---
+const W = 10000;
 const DATA = {
     chars: [
         { id: 0, name: '威龙', role: '突击', stats: {atk: 12, hp: 140}, img: 'https://placehold.co/100/222/FFF?text=威龙' },
         { id: 1, name: '蜂医', role: '支援', stats: {atk: 8, hp: 180}, img: 'https://placehold.co/100/222/FFF?text=蜂医' },
         { id: 2, name: '红狼', role: '侦查', stats: {atk: 10, hp: 120}, img: 'https://placehold.co/100/222/FFF?text=红狼' }
     ],
-    // 增加 atk 描述字段
     weapons: [
         { id: 0, name: '战术匕首', cost: 0, atk: 10, img: 'https://placehold.co/100/333/FFF?text=匕首' },
-        { id: 1, name: 'MP5冲锋枪', cost: 20000, atk: 25, img: 'https://placehold.co/100/333/FFF?text=MP5' },
-        { id: 2, name: 'M4A1步枪', cost: 50000, atk: 45, img: 'https://placehold.co/100/333/FFF?text=M4A1' }
+        { id: 1, name: 'MP5冲锋枪', cost: 2*W, atk: 25, img: 'https://placehold.co/100/333/FFF?text=MP5' },
+        { id: 2, name: 'M4A1步枪', cost: 5*W, atk: 45, img: 'https://placehold.co/100/333/FFF?text=M4A1' }
     ],
-    // 修改为数组对象，支持图片和数值展示
     armor: [
         { id: 0, name: '无防具', cost: 0, hp: 0, img: 'https://placehold.co/100/222/FFF?text=无' },
-        { id: 1, name: '一级轻甲', cost: 20000, hp: 50, img: 'https://placehold.co/100/444/FFF?text=1级甲' },
-        { id: 2, name: '三级战术甲', cost: 50000, hp: 100, img: 'https://placehold.co/100/555/FFF?text=3级甲' },
-        { id: 3, name: '五级重甲', cost: 100000, hp: 200, img: 'https://placehold.co/100/666/FFF?text=5级甲' }
+        { id: 1, name: '1级轻甲', cost: 2*W, hp: 50, img: 'https://placehold.co/100/444/FFF?text=1级甲' },
+        { id: 2, name: '3级战术甲', cost: 5*W, hp: 100, img: 'https://placehold.co/100/555/FFF?text=3级甲' },
+        { id: 3, name: '5级重甲', cost: 10*W, hp: 200, img: 'https://placehold.co/100/666/FFF?text=5级甲' }
     ],
     enemies: [
         { name: '游荡者', hp: 80, atk: 12, img: 'https://placehold.co/100/511/FFF?text=AI' },
         { name: '全装特遣', hp: 160, atk: 30, img: 'https://placehold.co/100/811/FFF?text=Enemy' },
-        { name: '首领阿萨拉', hp: 400, atk: 45, img: 'https://placehold.co/100/800/FFF?text=BOSS' }
+        { name: '首领阿萨拉', hp: 400, atk: 45, img: 'https://placehold.co/100/800/FFF?text=BOSS' },
+        // 新增敌人：全装猛攻哥，血量160，基础攻击75
+        { name: '全装猛攻哥', hp: 160, atk: 75, img: 'https://placehold.co/100/8b0000/FFF?text=猛攻哥' }
     ],
-    loot: [
-        { name: '打火机', val: 1000, tier: 1, img: 'https://placehold.co/120/333/FFF?text=打火机' },
-        { name: 'CPU风扇', val: 5000, tier: 2, img: 'https://placehold.co/120/4a90e2/FFF?text=CPU' },
-        { name: '金砖', val: 50000, tier: 3, img: 'https://placehold.co/120/ffd700/000?text=金砖' },
-        { name: '机密文件', val: 800000, tier: 4, img: 'https://placehold.co/120/ff0000/FFF?text=机密文件' }
+    lootTable: [
+        { name: '海洋之泪', val: 1300*W, tier: 3, weight: 0.5, img: 'https://placehold.co/120/ff4444/FFF?text=海洋之泪' },
+        { name: '非洲之心', val: 1000*W, tier: 3, weight: 0.8, img: 'https://placehold.co/120/ff4444/FFF?text=非洲之心' },
+        { name: '军用终端', val: 500*W, tier: 3, weight: 2.0, img: 'https://placehold.co/120/ff4444/FFF?text=军用终端' },
+        { name: '恒星敏感器',val: 450*W, tier: 3, weight: 2.0, img: 'https://placehold.co/120/ff4444/FFF?text=敏感器' },
+        { name: 'FAST收纳箱',val: 200*W, tier: 3, weight: 3.0, img: 'https://placehold.co/120/ff4444/FFF?text=FAST箱' },
+        { name: '雷明顿打字机',val:180*W, tier: 3, weight: 2.0, img: 'https://placehold.co/120/ff4444/FFF?text=打字机' },
+        { name: '显卡',       val: 150*W, tier: 3, weight: 3.0, img: 'https://placehold.co/120/ff4444/FFF?text=显卡' },
+        { name: '金条',       val: 120*W, tier: 3, weight: 4.0, img: 'https://placehold.co/120/ff4444/FFF?text=金条' },
+        { name: '马上起飞',   val: 100*W, tier: 3, weight: 1.0, img: 'https://placehold.co/120/ff4444/FFF?text=马上起飞' },
+        { name: '踏浪地炉',   val: 80*W,  tier: 3, weight: 1.5, img: 'https://placehold.co/120/ff4444/FFF?text=踏浪地炉' },
+        { name: '高级咖啡豆', val: 30*W,  tier: 3, weight: 1.0, img: 'https://placehold.co/120/ff4444/FFF?text=咖啡豆' },
+        { name: '液压破门器', val: 9*W,   tier: 2, weight: 5.0, img: 'https://placehold.co/120/ffd700/000?text=破门器' },
+        { name: '飞行员眼镜', val: 9*W,   tier: 2, weight: 20.0,img: 'https://placehold.co/120/ffd700/000?text=眼镜' },
+        { name: '哈弗克档案', val: 8*W,   tier: 2, weight: 10.0,img: 'https://placehold.co/120/ffd700/000?text=机密档案' },
+        { name: '脑机报告',   val: 7*W,   tier: 2, weight: 8.0, img: 'https://placehold.co/120/ffd700/000?text=脑机报告' },
+        { name: '感应魔方',   val: 6*W,   tier: 2, weight: 15.0,img: 'https://placehold.co/120/ffd700/000?text=魔方' },
+        { name: '残缺的档案', val: 5*W,   tier: 1, weight: 60.0,img: 'https://placehold.co/120/d2a8ff/000?text=残缺档案' },
+        { name: '盒装咖啡',   val: 3*W,   tier: 1, weight: 30.0,img: 'https://placehold.co/120/d2a8ff/000?text=盒装咖啡' },
+        { name: '电动马达',   val: 3*W,   tier: 1, weight: 5.0, img: 'https://placehold.co/120/d2a8ff/000?text=马达' },
+        { name: '典雅咖啡杯', val: 2*W,   tier: 1, weight: 50.0,img: 'https://placehold.co/120/d2a8ff/000?text=咖啡杯' },
+        { name: '镜头',       val: 2*W,   tier: 1, weight: 40.0,img: 'https://placehold.co/120/d2a8ff/000?text=镜头' },
     ]
 };
 
+function fmtMoney(num) {
+    if(num >= 10000) return Math.floor(num/10000) + "万";
+    return num; 
+}
+
 const State = {
-    money: 300000,
+    money: 300000, 
     sel: { char: 0, weap: 0, armor: 0 },
     game: { curHp: 0, maxHp: 0, atk: 0, bagVal: 0, bag: [] },
     combat: null
 };
 
-// --- Record System ---
-const RecordSystem = {
-    key: 'delta_game_records',
-    add: (charName, result, profit) => {
-        const rec = { char: charName, res: result, profit: profit, time: new Date().toLocaleTimeString() };
-        const list = RecordSystem.get();
-        list.unshift(rec); 
-        if(list.length > 10) list.pop(); 
-        localStorage.setItem(RecordSystem.key, JSON.stringify(list));
-        UI.renderHistory();
+const Storage = {
+    keyExhib: 'delta_exhibition_v6',
+    unlockRedItem: (itemName) => {
+        let db = Storage.getExhibition();
+        if(!db[itemName]) db[itemName] = 0;
+        db[itemName]++;
+        localStorage.setItem(Storage.keyExhib, JSON.stringify(db));
     },
-    get: () => {
-        const s = localStorage.getItem(RecordSystem.key);
-        return s ? JSON.parse(s) : [];
+    getExhibition: () => {
+        const s = localStorage.getItem(Storage.keyExhib);
+        return s ? JSON.parse(s) : {};
     }
 };
 
-// --- UI Logic ---
 const UI = {
     init: () => {
-        // Render Chars
         document.getElementById('char-list').innerHTML = DATA.chars.map((c,i) => `
             <div class="card ${i===0?'selected':''}" onclick="UI.sel('char', ${i}, this)">
-                <img src="${c.img}">
-                <div class="card-info">
-                    <b>${c.name}</b><br>
-                    <span style="color:#aaa">${c.role}</span>
+                <img src="${c.img}"><div class="card-info"><b>${c.name}</b><br>
+                    <span class="stat-badge" style="color:var(--highlight)">⚔️${c.stats.atk}</span>
+                    <span class="stat-badge" style="color:var(--green)">❤️${c.stats.hp}</span>
                 </div>
-            </div>
-        `).join('');
+            </div>`).join('');
         
-        // Render Weapons (With Stats)
         document.getElementById('weapon-list').innerHTML = DATA.weapons.map((w,i) => `
             <div class="card ${i===0?'selected':''}" onclick="UI.sel('weap', ${i}, this)">
-                <img src="${w.img}">
-                <div class="card-info">
-                    <b>${w.name}</b><br>
-                    <span style="color:var(--gold)">$${w.cost}</span><br>
-                    <span class="stat-badge" style="color:var(--danger)">⚔️ +${w.atk}</span>
+                <img src="${w.img}"><div class="card-info"><b>${w.name}</b><br>
+                    <span style="color:var(--gold)">$${fmtMoney(w.cost)}</span><br>
+                    <span class="stat-badge" style="color:var(--danger)">⚔️+${w.atk}</span>
                 </div>
-            </div>
-        `).join('');
+            </div>`).join('');
 
-        // Render Armor (New Card List)
         document.getElementById('armor-list').innerHTML = DATA.armor.map((a,i) => `
             <div class="card ${i===0?'selected':''}" onclick="UI.sel('armor', ${i}, this)">
-                <img src="${a.img}">
-                <div class="card-info">
-                    <b>${a.name}</b><br>
-                    <span style="color:var(--gold)">$${a.cost}</span><br>
-                    <span class="stat-badge" style="color:var(--highlight)">🛡️ +${a.hp}</span>
+                <img src="${a.img}"><div class="card-info"><b>${a.name}</b><br>
+                    <span style="color:var(--gold)">$${fmtMoney(a.cost)}</span><br>
+                    <span class="stat-badge" style="color:var(--highlight)">🛡️+${a.hp}</span>
                 </div>
-            </div>
-        `).join('');
-
+            </div>`).join('');
         UI.updateLobby();
-        UI.renderHistory();
     },
 
     sel: (type, idx, el) => {
         State.sel[type] = idx;
-        // Highlight logic
         el.parentElement.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
         el.classList.add('selected');
         UI.updateLobby();
@@ -401,40 +385,36 @@ const UI = {
 
     updateLobby: () => {
         const cost = DATA.weapons[State.sel.weap].cost + DATA.armor[State.sel.armor].cost;
-        document.getElementById('ui-money').innerText = State.money;
-        
-        // 更新底部实时花费
-        document.getElementById('ui-total-cost').innerText = `$${cost}`;
+        document.getElementById('ui-money').innerText = fmtMoney(State.money);
+        document.getElementById('ui-total-cost').innerText = `$${fmtMoney(cost)}`;
     },
 
-    renderHistory: () => {
-        const list = RecordSystem.get();
-        const con = document.getElementById('history-container');
-        if(list.length === 0) {
-            con.innerHTML = '<div style="text-align:center; color:#555; padding:20px;">暂无数据</div>';
-            return;
-        }
-        con.innerHTML = list.map(r => `
-            <div class="history-item ${r.res}">
-                <div>
-                    <div>${r.res==='win'?'撤离成功':'行动阵亡'} <span style="color:#666">(${r.char})</span></div>
-                    <div style="color:#666">${r.time}</div>
+    showExhibition: () => {
+        const modal = document.getElementById('modal-exhibition');
+        const grid = document.getElementById('museum-grid');
+        const owned = Storage.getExhibition();
+        const redItems = DATA.lootTable.filter(i => i.tier === 3);
+
+        grid.innerHTML = redItems.map(item => {
+            const count = owned[item.name] || 0;
+            const isUnlocked = count > 0;
+            return `
+                <div class="museum-card ${isUnlocked ? 'unlocked' : ''}">
+                    <img src="${item.img}" class="museum-img">
+                    <div class="museum-name">${item.name}</div>
+                    <div class="museum-count">${isUnlocked ? '已收藏: '+count : '未解锁'}</div>
                 </div>
-                <div style="font-weight:bold; color:${r.profit>=0?'var(--gold)':'var(--danger)'}">
-                    ${r.profit>=0?'+':''}${r.profit}
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+        modal.style.display = 'flex';
     },
 
-    // 确认弹窗
     showConfirmModal: () => {
         const cost = DATA.weapons[State.sel.weap].cost + DATA.armor[State.sel.armor].cost;
         if(State.money < cost) return alert("资金不足！");
-
-        document.getElementById('conf-balance').innerText = `$${State.money}`;
-        document.getElementById('conf-cost').innerText = `-$${cost}`;
-        document.getElementById('conf-remain').innerText = `$${State.money - cost}`;
+        document.getElementById('conf-balance').innerText = `$${fmtMoney(State.money)}`;
+        document.getElementById('conf-cost').innerText = `-$${fmtMoney(cost)}`;
+        document.getElementById('conf-remain').innerText = `$${fmtMoney(State.money - cost)}`;
         document.getElementById('modal-confirm').style.display = 'flex';
     },
 
@@ -452,40 +432,30 @@ const UI = {
     },
     ask: (opts) => {
         const c = document.getElementById('game-log-container');
-        const div = document.createElement('div');
-        div.className = 'choice-container';
+        const d = document.createElement('div');
+        d.className = 'choice-container';
         opts.forEach(o => {
             const b = document.createElement('button');
             b.className = 'chat-btn';
             b.innerText = o.txt;
-            b.onclick = () => { div.remove(); UI.chat(`> ${o.txt}`, 'system'); o.cb(); };
-            div.appendChild(b);
+            b.onclick = () => { d.remove(); UI.chat(`> ${o.txt}`, 'system'); o.cb(); };
+            d.appendChild(b);
         });
-        c.appendChild(div);
+        c.appendChild(d);
         c.scrollTop = c.scrollHeight;
     }
 };
 
-// --- Logic ---
 const Game = {
     finalStart: () => {
         document.getElementById('modal-confirm').style.display = 'none';
         const cost = DATA.weapons[State.sel.weap].cost + DATA.armor[State.sel.armor].cost;
         State.money -= cost;
-        State.game.currentCost = cost;
-        
         const c = DATA.chars[State.sel.char];
         const w = DATA.weapons[State.sel.weap];
         const a = DATA.armor[State.sel.armor];
-        
-        State.game = {
-            ...State.game,
-            curHp: c.stats.hp + a.hp,
-            maxHp: c.stats.hp + a.hp,
-            atk: c.stats.atk + w.atk,
-            bagVal: 0, bag: [],
-            currentCost: cost
-        };
+        const totalHp = c.stats.hp + a.hp;
+        State.game = { curHp: totalHp, maxHp: totalHp, atk: c.stats.atk + w.atk, bagVal: 0, bag: [] };
         
         UI.showScreen('screen-game');
         document.getElementById('game-log-container').innerHTML = '';
@@ -497,67 +467,129 @@ const Game = {
     flow: (step) => {
         if(step === 'START') {
             document.getElementById('ui-loc').innerText = "零号大坝·外围";
-            UI.chat("你已抵达大坝外围，空气中弥漫着硝烟。", 'event');
+            UI.chat("操作已开始。注意，大坝区域信号极不稳定。", 'event');
             setTimeout(() => {
-                UI.chat("侦测到两个信号源，请指示。");
+                UI.chat("侦测到两个高价值区域。");
                 UI.ask([
-                    { txt: "前往行政楼 (高风险)", cb: ()=>Game.flow('ADMIN') },
-                    { txt: "搜查游客中心 (一般)", cb: ()=>Game.flow('VISITOR') }
+                    { txt: "行政楼 (高危/高爆率)", cb: ()=>Game.flow('ADMIN') },
+                    { txt: "游客中心 (安全)", cb: ()=>Game.flow('VISITOR') }
                 ]);
-            }, 600);
+            }, 800);
         }
         else if(step === 'ADMIN') {
             document.getElementById('ui-loc').innerText = "行政楼";
             UI.chat("行政楼内部光线昏暗...", 'event');
-            if(Math.random() < 0.8) {
-                UI.chat("前方发现全装敌人！准备交战！", 'system');
-                setTimeout(() => Game.initCombat('hard'), 1000);
+            if(Math.random() < 0.7) { 
+                // 遇敌逻辑更新：15%概率遭遇猛攻哥
+                if(Math.random() < 0.15) {
+                    UI.chat("<b style='color:var(--dark-red)'>脚步声沉重...全装猛攻哥出现！</b>", 'system');
+                    setTimeout(() => Game.initCombat('rusher'), 1000);
+                } else {
+                    UI.chat("遭遇全装埋伏！", 'system');
+                    setTimeout(() => Game.initCombat('hard'), 1000);
+                }
             } else {
-                UI.chat("这里有个高级保险箱。");
-                UI.ask([{ txt: "开启保险箱", cb: ()=>Game.loot(3) }]);
+                UI.chat("发现一个未开启的机密保险箱。");
+                UI.ask([{ txt: "破译密码", cb: ()=>Game.loot('high') }]);
             }
         }
         else if(step === 'VISITOR') {
             document.getElementById('ui-loc').innerText = "游客中心";
-            UI.chat("这里看起来被搜刮过了。", 'event');
-            if(Math.random() < 0.4) {
-                UI.chat("有个游荡者在角落。", 'system');
+            UI.chat("这里比较安静，只有一些零散物资。", 'event');
+            if(Math.random() < 0.3) {
+                UI.chat("有游荡者在巡逻。", 'system');
                 setTimeout(() => Game.initCombat('easy'), 1000);
             } else {
-                UI.chat("发现一个遗落的背包。");
-                UI.ask([{ txt: "检查背包", cb: ()=>Game.loot(1) }]);
+                UI.chat("发现一个旅行包。");
+                UI.ask([{ txt: "搜刮", cb: ()=>Game.loot('low') }]);
             }
         }
         else if(step === 'AFTER') {
-            UI.chat("区域安全。下一步？");
+            UI.chat("区域已肃清。下一步？");
             UI.ask([
                 { txt: "继续探索", cb: ()=>Game.flow(Math.random()>0.5?'ADMIN':'VISITOR') },
-                { txt: "撤离", cb: ()=>Game.extract() }
+                { txt: "呼叫撤离", cb: ()=>Game.extract() }
             ]);
         }
     },
 
-    loot: (tier) => {
+    loot: (bias) => {
         const m = document.getElementById('modal-loot');
         m.style.display = 'flex';
         document.getElementById('loot-anim').style.display = 'block';
         document.getElementById('loot-result').style.display = 'none';
         
-        const roll = Math.random() * 100 + (tier*10);
-        let item = DATA.loot[0];
-        let wait = 1000;
-        if(roll > 95) { item = DATA.loot[3]; wait = 3000; }
-        else if(roll > 75) { item = DATA.loot[2]; wait = 2000; }
-        else if(roll > 40) { item = DATA.loot[1]; wait = 1500; }
+        let pool = DATA.lootTable;
         
+        // --- 核心爆率逻辑 ---
+        if (bias === 'low' || bias === 'scavenger') {
+            if(Math.random() > 0.001) pool = pool.filter(i => i.tier < 3);
+        }
+        else if (bias === 'elite') {
+            // 普通全装：正常概率
+        }
+        else if (bias === 'boss' || bias === 'high') {
+            pool = pool.filter(i => i.tier >= 2);
+        }
+        else if (bias === 'rusher') {
+            // 猛攻哥专属：绝不掉紫，80%掉红，20%掉金
+            pool = pool.filter(i => i.tier >= 2); 
+            if(Math.random() < 0.8) {
+                pool = pool.filter(i => i.tier === 3); // 强制红
+            } else {
+                pool = pool.filter(i => i.tier === 2); // 强制金
+            }
+        }
+
+        const totalWeight = pool.reduce((sum, item) => sum + item.weight, 0);
+        let random = Math.random() * totalWeight;
+        let selectedItem = pool[0];
+        for (const item of pool) {
+            if (random < item.weight) {
+                selectedItem = item;
+                break;
+            }
+            random -= item.weight;
+        }
+
+        let wait = 1000;
+        if(selectedItem.tier === 2) wait = 1800;
+        if(selectedItem.tier === 3) wait = 3000;
+
         setTimeout(() => {
             document.getElementById('loot-anim').style.display = 'none';
             document.getElementById('loot-result').style.display = 'block';
-            document.getElementById('loot-item-img').src = item.img;
-            document.getElementById('loot-item-name').innerText = item.name;
-            document.getElementById('loot-item-name').style.color = item.tier>=3 ? 'gold' : 'white';
-            document.getElementById('loot-item-val').innerText = `$${item.val}`;
-            Game.tempItem = item;
+            
+            const img = document.getElementById('loot-item-img');
+            const name = document.getElementById('loot-item-name');
+            const val = document.getElementById('loot-item-val');
+            const shine = document.getElementById('loot-shine');
+            const card = document.getElementById('loot-result');
+
+            img.src = selectedItem.img;
+            name.innerText = selectedItem.name;
+            val.innerText = `$${fmtMoney(selectedItem.val)}`;
+            
+            card.style.borderColor = '#444';
+            card.style.boxShadow = 'none';
+            name.style.color = '#fff';
+            shine.style.color = '#fff';
+
+            if(selectedItem.tier === 3) {
+                card.style.borderColor = 'var(--danger)';
+                card.style.boxShadow = '0 0 30px var(--danger)';
+                name.style.color = 'var(--danger)';
+                shine.innerText = "!!! 极致珍品 !!!";
+                shine.style.color = 'var(--danger)';
+            } else if(selectedItem.tier === 2) {
+                name.style.color = 'var(--gold)';
+                shine.innerText = "高价值物资";
+                shine.style.color = 'var(--gold)';
+            } else {
+                name.style.color = 'var(--purple)';
+                shine.innerText = "物资发现";
+            }
+            Game.tempItem = selectedItem;
         }, wait);
     },
     
@@ -565,35 +597,34 @@ const Game = {
         document.getElementById('modal-loot').style.display = 'none';
         State.game.bag.push(Game.tempItem);
         State.game.bagVal += Game.tempItem.val;
-        document.getElementById('ui-bag').innerText = State.game.bagVal;
-        UI.chat(`获得 <span style="color:gold">${Game.tempItem.name}</span>`, 'system');
+        document.getElementById('ui-bag').innerText = fmtMoney(State.game.bagVal);
+        UI.chat(`获得 <span style="color:${Game.tempItem.tier===3?'var(--danger)':'var(--highlight)'}">[${Game.tempItem.name}]</span>`, 'system');
         Game.flow('AFTER');
     },
 
     initCombat: (diff) => {
         UI.showScreen('screen-combat');
-        let enemy = DATA.enemies[0];
-        if(diff === 'hard') enemy = DATA.enemies[1];
-        if(diff === 'boss') enemy = DATA.enemies[2];
+        let enemy = DATA.enemies[0]; // default: scavenger
+        if(diff === 'hard') enemy = DATA.enemies[1]; // elite
+        if(diff === 'boss') enemy = DATA.enemies[2]; // boss
+        if(diff === 'rusher') enemy = DATA.enemies[3]; // 猛攻哥
+
         State.combat = { round: 0, enemy: { ...enemy, maxHp: enemy.hp }, player: State.game };
-        
         document.getElementById('combat-log').innerHTML = '<div style="color:#aaa">>>> 战斗系统启动 <<<</div>';
         document.getElementById('enemy-img').src = enemy.img;
         document.getElementById('enemy-name').innerText = enemy.name;
         document.getElementById('player-img').src = DATA.chars[State.sel.char].img;
-        
         Game.updateCombatBars();
         setTimeout(Game.turnPlayer, 1000);
     },
 
     updateCombatBars: () => {
         const c = State.combat;
-        const ep = (c.enemy.hp / c.enemy.maxHp) * 100;
-        document.getElementById('enemy-hp-bar').style.width = Math.max(0, ep) + '%';
+        const ep = Math.max(0, (c.enemy.hp / c.enemy.maxHp) * 100);
+        document.getElementById('enemy-hp-bar').style.width = ep + '%';
         document.getElementById('enemy-hp-text').innerText = `${c.enemy.hp}/${c.enemy.maxHp}`;
-        
-        const pp = (c.player.curHp / c.player.maxHp) * 100;
-        document.getElementById('player-hp-bar').style.width = Math.max(0, pp) + '%';
+        const pp = Math.max(0, (c.player.curHp / c.player.maxHp) * 100);
+        document.getElementById('player-hp-bar').style.width = pp + '%';
         document.getElementById('player-hp-text').innerText = `${c.player.curHp}/${c.player.maxHp}`;
         document.getElementById('ui-hp-global').innerText = Math.floor(pp) + '%';
     },
@@ -604,7 +635,7 @@ const Game = {
         el.className = 'dmg-popup';
         el.innerText = `-${dmg}`;
         wrapper.appendChild(el);
-        setTimeout(()=>el.remove(), 1000);
+        setTimeout(() => el.remove(), 1000);
         const img = wrapper.querySelector('img');
         img.classList.add('shake-anim', 'hit-flash');
         setTimeout(() => img.classList.remove('shake-anim', 'hit-flash'), 400);
@@ -614,20 +645,15 @@ const Game = {
         if(State.combat.player.curHp <= 0) return Game.endCombat(false);
         document.getElementById('player-img').classList.add('atk-lunge-right');
         setTimeout(() => document.getElementById('player-img').classList.remove('atk-lunge-right'), 300);
-
         const dmg = Math.floor(State.combat.player.atk * (0.9 + Math.random()*0.3));
         State.combat.enemy.hp -= dmg;
         if(State.combat.enemy.hp < 0) State.combat.enemy.hp = 0;
-        
         setTimeout(() => {
             Game.showDmg('fighter-enemy', dmg);
             Game.updateCombatBars();
             Game.logCombat(`你射击造成 <span style="color:#ff6b6b">${dmg}</span> 伤害`);
-            if(State.combat.enemy.hp <= 0) {
-                setTimeout(() => Game.endCombat(true), 1200);
-            } else {
-                setTimeout(Game.turnEnemy, 1500);
-            }
+            if(State.combat.enemy.hp <= 0) setTimeout(() => Game.endCombat(true), 1200);
+            else setTimeout(Game.turnEnemy, 1500);
         }, 300);
     },
 
@@ -635,20 +661,15 @@ const Game = {
         if(State.combat.enemy.hp <= 0) return;
         document.getElementById('enemy-img').classList.add('atk-lunge-left');
         setTimeout(() => document.getElementById('enemy-img').classList.remove('atk-lunge-left'), 300);
-
         const dmg = Math.floor(State.combat.enemy.atk * (0.8 + Math.random()*0.4));
         State.combat.player.curHp -= dmg;
         if(State.combat.player.curHp < 0) State.combat.player.curHp = 0;
-
         setTimeout(() => {
             Game.showDmg('fighter-player', dmg);
             Game.updateCombatBars();
             Game.logCombat(`${State.combat.enemy.name} 反击造成 <span style="color:#ff6b6b">${dmg}</span> 伤害`);
-            if(State.combat.player.curHp <= 0) {
-                setTimeout(() => Game.endCombat(false), 1200);
-            } else {
-                setTimeout(Game.turnPlayer, 1500);
-            }
+            if(State.combat.player.curHp <= 0) setTimeout(() => Game.endCombat(false), 1200);
+            else setTimeout(Game.turnPlayer, 1500);
         }, 300);
     },
 
@@ -662,27 +683,37 @@ const Game = {
 
     endCombat: (win) => {
         if(win) {
-            const loot = State.combat.enemy.atk * 800;
-            State.game.bagVal += loot;
-            document.getElementById('ui-bag').innerText = State.game.bagVal;
-            alert(`战斗胜利！\n缴获物资价值: $${loot}`);
-            UI.showScreen('screen-game');
-            UI.chat("威胁已清除。继续行动。", 'event');
-            Game.flow('AFTER');
+            UI.showScreen('screen-game'); 
+            const enemyName = State.combat.enemy.name;
+            UI.chat(`威胁清除！击败了 <span style="color:var(--danger)">${enemyName}</span>`, 'event');
+            
+            let lootBias = 'scavenger'; 
+            if(enemyName === '全装特遣') lootBias = 'elite';
+            if(enemyName === '首领阿萨拉') lootBias = 'boss';
+            if(enemyName === '全装猛攻哥') lootBias = 'rusher'; // 设定猛攻哥专属掉落
+
+            UI.ask([
+                { txt: "搜索背包", cb: () => Game.loot(lootBias) }, 
+                { txt: "直接离开", cb: () => Game.flow('AFTER') }
+            ]);
         } else {
             alert("你已阵亡...");
-            RecordSystem.add(DATA.chars[State.sel.char].name, 'loss', -State.game.currentCost);
             location.reload();
         }
     },
 
     extract: () => {
-        UI.chat("呼叫撤离...", 'event');
+        UI.chat("正在呼叫撤离...", 'event');
         setTimeout(() => {
             const profit = State.game.bagVal;
-            alert(`成功撤离！\n带出收益: $${profit}`);
+            alert(`撤离成功！\n带出收益: $${fmtMoney(profit)}`);
+            State.game.bag.forEach(item => {
+                if(item.tier === 3) {
+                    Storage.unlockRedItem(item.name);
+                    alert(`>>> 恭喜！收藏品入库: ${item.name} <<<`);
+                }
+            });
             State.money += profit;
-            RecordSystem.add(DATA.chars[State.sel.char].name, 'win', profit);
             UI.showScreen('screen-lobby');
             UI.updateLobby();
         }, 1500);
