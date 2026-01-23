@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文字三角洲 V7.2：满改M7</title>
+    <title>文字三角洲 V7.5：经济重制</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -60,8 +60,10 @@
             border-radius: 8px; cursor: pointer; position: relative; transition: 0.2s; overflow: hidden;
         }
         .card.selected { border-color: var(--highlight); background: #1f2428; box-shadow: 0 0 10px rgba(88,166,255,0.2); }
-        .card img { width: 100%; height: 70px; object-fit: cover; background: #333; }
-        .card-info { padding: 10px; font-size: 12px; line-height: 1.6; }
+        
+        /* 优化图片显示 */
+        .card img { width: 100%; height: 80px; object-fit: contain; background: #111; padding: 5px; box-sizing: border-box; }
+        .card-info { padding: 10px; font-size: 12px; line-height: 1.6; background: #21262d; position: relative; z-index: 2; }
         
         .stat-badge { 
             display: inline-block; background: rgba(0,0,0,0.3); 
@@ -122,7 +124,7 @@
         .fighter-wrapper { display: flex; align-items: center; gap: 15px; position: relative; }
         .fighter-wrapper.enemy { flex-direction: row-reverse; align-self: flex-end; }
         
-        .fighter-avatar { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #555; background: #222; box-shadow: 0 0 15px rgba(0,0,0,0.8); z-index: 2; }
+        .fighter-avatar { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #555; background: #222; box-shadow: 0 0 15px rgba(0,0,0,0.8); z-index: 2; object-fit: cover; }
         .fighter-wrapper.enemy .fighter-avatar { border-color: var(--danger); }
         .fighter-wrapper.player .fighter-avatar { border-color: var(--highlight); }
         
@@ -275,61 +277,67 @@
 const W = 10000;
 const DATA = {
     chars: [
-        { id: 0, name: '威龙', role: '突击', stats: {atk: 12, hp: 140}, img: 'https://placehold.co/100/222/FFF?text=威龙' },
-        { id: 1, name: '蜂医', role: '支援', stats: {atk: 8, hp: 180}, img: 'https://placehold.co/100/222/FFF?text=蜂医' },
-        { id: 2, name: '红狼', role: '侦查', stats: {atk: 10, hp: 120}, img: 'https://placehold.co/100/222/FFF?text=红狼' }
+        { id: 0, name: '威龙', role: '突击', stats: {atk: 12, hp: 140}, img: 'https://img1.ali213.net/glpic/2025/05/09/20250509104506264.jpg' },
+        { id: 1, name: '蜂医', role: '支援', stats: {atk: 8, hp: 180}, img: 'https://img1.ali213.net/glpic/2025/05/09/20250509104910983.jpg' },
+        { id: 2, name: '红狼', role: '侦查', stats: {atk: 10, hp: 120}, img: 'https://img1.ali213.net/glpic/2025/05/09/20250509105008772.jpg' }
     ],
+    // V7.5 更新：武器涨价
     weapons: [
-        { id: 0, name: '战术匕首', cost: 0, atk: 10, img: 'https://placehold.co/100/333/FFF?text=匕首' },
-        { id: 1, name: 'MP5冲锋枪', cost: 2*W, atk: 25, img: 'https://placehold.co/100/333/FFF?text=MP5' },
-        { id: 2, name: 'M4A1步枪', cost: 5*W, atk: 45, img: 'https://placehold.co/100/333/FFF?text=M4A1' },
-        // 新增满改M7：高价值，高伤害
-        { id: 3, name: '满改M7', cost: 100*W, atk: 80, img: 'https://placehold.co/100/333/FFF?text=满改M7' }
+        { id: 0, name: '战术匕首', cost: 0, atk: 10, img: 'https://th.bing.com/th/id/OIP.VYgDJuWWbwvNaYbf3x44WQHaEU?w=312&h=181&c=7&r=0&o=7&dpr=2&pid=1.7&rm=3' },
+        { id: 1, name: 'MP5冲锋枪', cost: 5*W, atk: 25, img: 'https://sjz.jbskins.com/Public//images/items/gunRifle_18020000001.png' }, // 5w
+        { id: 2, name: 'M4A1步枪', cost: 20*W, atk: 45, img: 'https://sjz.jbskins.com/Public//images/items/gunRifle_18010000001.png' }, // 20w
+        { id: 3, name: '满改M7', cost: 100*W, atk: 80, img: 'https://sjz.jbskins.com/Public//images/items/gunRifle_18010000016.png' }
     ],
     armor: [
-        { id: 0, name: '无防具', cost: 0, hp: 0, img: 'https://placehold.co/100/222/FFF?text=无' },
-        { id: 1, name: '1级轻甲', cost: 2*W, hp: 50, img: 'https://placehold.co/100/444/FFF?text=1级甲' },
-        { id: 2, name: '3级战术甲', cost: 5*W, hp: 100, img: 'https://placehold.co/100/555/FFF?text=3级甲' },
-        { id: 3, name: '5级重甲', cost: 10*W, hp: 200, img: 'https://placehold.co/100/666/FFF?text=5级甲' }
+        { id: 0, name: '无防具', cost: 0, hp: 0, img: 'https://sjz.jbskins.com/Public//images/items/armor_11050001003.png' },
+        { id: 1, name: '1级轻甲', cost: 2*W, hp: 50, img: 'https://sjz.jbskins.com/Public//images/items/armor_11050001001.png' },
+        { id: 2, name: '3级战术甲', cost: 5*W, hp: 100, img: 'https://sjz.jbskins.com/Public//images/items/armor_11050003003.png' },
+        { id: 3, name: '5级重甲', cost: 10*W, hp: 200, img: 'https://sjz.jbskins.com/Public//images/items/armor_11050005001.png' }
     ],
     enemies: [
         { name: '游荡者', hp: 80, atk: 12, img: 'https://placehold.co/100/511/FFF?text=AI' },
-        { name: '全装特遣', hp: 160, atk: 30, img: 'https://placehold.co/100/811/FFF?text=Enemy' },
+        { name: '猛攻鼠鼠', hp: 160, atk: 30, img: 'https://placehold.co/100/811/FFF?text=Mouse' },
         { name: '首领阿萨拉', hp: 400, atk: 45, img: 'https://placehold.co/100/800/FFF?text=BOSS' },
         { name: '全装猛攻哥', hp: 160, atk: 75, img: 'https://placehold.co/100/8b0000/FFF?text=猛攻哥' }
     ],
     lootTable: [
-        { name: '海洋之泪', val: 1300*W, tier: 3, weight: 0.5, img: 'https://placehold.co/120/ff4444/FFF?text=海洋之泪' },
-        { name: '非洲之心', val: 1000*W, tier: 3, weight: 0.8, img: 'https://placehold.co/120/ff4444/FFF?text=非洲之心' },
-        { name: '军用终端', val: 500*W, tier: 3, weight: 2.0, img: 'https://placehold.co/120/ff4444/FFF?text=军用终端' },
-        { name: '恒星敏感器',val: 450*W, tier: 3, weight: 2.0, img: 'https://placehold.co/120/ff4444/FFF?text=敏感器' },
-        { name: 'FAST收纳箱',val: 200*W, tier: 3, weight: 3.0, img: 'https://placehold.co/120/ff4444/FFF?text=FAST箱' },
-        { name: '雷明顿打字机',val:180*W, tier: 3, weight: 2.0, img: 'https://placehold.co/120/ff4444/FFF?text=打字机' },
-        { name: '显卡',       val: 150*W, tier: 3, weight: 3.0, img: 'https://placehold.co/120/ff4444/FFF?text=显卡' },
-        { name: '金条',       val: 120*W, tier: 3, weight: 4.0, img: 'https://placehold.co/120/ff4444/FFF?text=金条' },
-        { name: '马上起飞',   val: 100*W, tier: 3, weight: 1.0, img: 'https://placehold.co/120/ff4444/FFF?text=马上起飞' },
-        { name: '踏浪地炉',   val: 80*W,  tier: 3, weight: 1.5, img: 'https://placehold.co/120/ff4444/FFF?text=踏浪地炉' },
-        { name: '高级咖啡豆', val: 30*W,  tier: 3, weight: 1.0, img: 'https://placehold.co/120/ff4444/FFF?text=咖啡豆' },
-        { name: '液压破门器', val: 9*W,   tier: 2, weight: 5.0, img: 'https://placehold.co/120/ffd700/000?text=破门器' },
-        { name: '飞行员眼镜', val: 9*W,   tier: 2, weight: 20.0,img: 'https://placehold.co/120/ffd700/000?text=眼镜' },
-        { name: '哈弗克档案', val: 8*W,   tier: 2, weight: 10.0,img: 'https://placehold.co/120/ffd700/000?text=机密档案' },
-        { name: '脑机报告',   val: 7*W,   tier: 2, weight: 8.0, img: 'https://placehold.co/120/ffd700/000?text=脑机报告' },
-        { name: '感应魔方',   val: 6*W,   tier: 2, weight: 15.0,img: 'https://placehold.co/120/ffd700/000?text=魔方' },
-        { name: '残缺的档案', val: 5*W,   tier: 1, weight: 60.0,img: 'https://placehold.co/120/d2a8ff/000?text=残缺档案' },
-        { name: '盒装咖啡',   val: 3*W,   tier: 1, weight: 30.0,img: 'https://placehold.co/120/d2a8ff/000?text=盒装咖啡' },
-        { name: '电动马达',   val: 3*W,   tier: 1, weight: 5.0, img: 'https://placehold.co/120/d2a8ff/000?text=马达' },
-        { name: '典雅咖啡杯', val: 2*W,   tier: 1, weight: 50.0,img: 'https://placehold.co/120/d2a8ff/000?text=咖啡杯' },
-        { name: '镜头',       val: 2*W,   tier: 1, weight: 40.0,img: 'https://placehold.co/120/d2a8ff/000?text=镜头' },
+        { name: '海洋之泪', val: 2200*W, tier: 3, weight: 0.5, img: 'https://playerhub.df.qq.com/playerhub/60004/object/15080050142.png' },
+        { name: '非洲之心', val: 1314*W, tier: 3, weight: 0.8, img: 'https://sjz.jbskins.com/Public//images/items/collection_15080050006.png' },
+        { name: '军用终端', val: 38*W, tier: 3, weight: 2.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15030050018.png' },
+        { name: '克劳迪乌斯半身像',val: 133*W, tier: 3, weight: 2.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15040050002.png' },
+        { name: '呼吸机',val: 45*W, tier: 3, weight: 3.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15060040004.png' },
+        { name: '刀片服务器',val:144*W, tier: 3, weight: 2.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15030050008.png' },
+        { name: '显卡',       val: 34*W, tier: 3, weight: 3.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15030050001.png' },
+        { name: '金条',       val: 34*W, tier: 3, weight: 4.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15080050010.png' },
+        { name: '滑膛枪',   val: 67*W, tier: 3, weight: 1.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15080050003.png' },
+        { name: '曼德尔超算单元',   val: 200*W,  tier: 3, weight: 1.5, img: 'https://sjz.jbskins.com/Public//images/items/collection_15080050030.png' },
+        
+        // V7.5 更新：可编程处理器降级为Tier 2 (金)
+        { name: '可编程处理器', val: 15*W,  tier: 2, weight: 1.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15030050003.png' },
+        
+        { name: '军用炸药', val: 34*W,   tier: 2, weight: 5.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15030050019.png' },
+        { name: '燃料电池', val: 37*W,   tier: 2, weight: 20.0,img: 'https://sjz.jbskins.com/Public//images/items/collection_15020010036.png' },
+        { name: '座钟', val: 20*W,   tier: 2, weight: 10.0,img: 'https://sjz.jbskins.com/Public//images/items/collection_15080050083.png' },
+        { name: '哈夫克机密档案',   val: 12*W,   tier: 2, weight: 8.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15080050063.png' },
+        { name: '军用望远镜',   val: 13*W,   tier: 2, weight: 15.0,img: 'https://sjz.jbskins.com/Public//images/items/collection_15080050035.png' },
+        
+        { name: '仪典匕首', val: 10*W,   tier: 1, weight: 60.0,img: 'https://sjz.jbskins.com/Public//images/items/collection_15080050043.png' },
+        { name: '自旋型手锯',   val: 10*W,   tier: 1, weight: 30.0,img: 'https://sjz.jbskins.com/Public//images/items/collection_15020050001.png' },
+        { name: '血压仪',   val: 4*W,   tier: 1, weight: 5.0, img: 'https://sjz.jbskins.com/Public//images/items/collection_15060040002.png' },
+        { name: '犄角墙饰', val: 1.7*W,   tier: 1, weight: 50.0,img: 'https://sjz.jbskins.com/Public//images/items/collection_15080040003.png' },
+        { name: '后妃耳环',  val: 1.4*W,   tier: 1, weight: 40.0,img: 'https://sjz.jbskins.com/Public//images/items/collection_15080050001.png' },
     ]
 };
 
 function fmtMoney(num) {
     if(num >= 10000) return Math.floor(num/10000) + "万";
+    if(num >= 1000) return (num/1000).toFixed(1) + "k";
     return num; 
 }
 
 const State = {
-    money: 300000, 
+    // V7.5 更新：初始资金改为 5w
+    money: 50000, 
     sel: { char: 0, weap: 0, armor: 0 },
     game: { curHp: 0, maxHp: 0, atk: 0, bagVal: 0, bag: [] },
     combat: null
@@ -485,7 +493,7 @@ const Game = {
                     UI.chat("<b style='color:var(--dark-red)'>脚步声沉重...全装猛攻哥出现！</b>", 'system');
                     setTimeout(() => Game.initCombat('rusher'), 1000);
                 } else {
-                    UI.chat("遭遇全装埋伏！", 'system');
+                    UI.chat("遭遇 <b style='color:var(--danger)'>猛攻鼠鼠</b> 埋伏！", 'system');
                     setTimeout(() => Game.initCombat('hard'), 1000);
                 }
             } else {
@@ -601,7 +609,7 @@ const Game = {
     initCombat: (diff) => {
         UI.showScreen('screen-combat');
         let enemy = DATA.enemies[0];
-        if(diff === 'hard') enemy = DATA.enemies[1];
+        if(diff === 'hard') enemy = DATA.enemies[1]; // 猛攻鼠鼠
         if(diff === 'boss') enemy = DATA.enemies[2];
         if(diff === 'rusher') enemy = DATA.enemies[3];
 
@@ -684,7 +692,7 @@ const Game = {
             UI.chat(`威胁清除！击败了 <span style="color:var(--danger)">${enemyName}</span>`, 'event');
             
             let lootBias = 'scavenger'; 
-            if(enemyName === '全装特遣') lootBias = 'elite';
+            if(enemyName === '猛攻鼠鼠') lootBias = 'elite'; 
             if(enemyName === '首领阿萨拉') lootBias = 'boss';
             if(enemyName === '全装猛攻哥') lootBias = 'rusher'; 
 
